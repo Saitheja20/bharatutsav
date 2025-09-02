@@ -3,6 +3,7 @@ import { Auth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
+import {  signInWithRedirect, getRedirectResult } from '@angular/fire/auth';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +21,13 @@ export class AuthService {
     private router: Router,
     private ngZone: NgZone // To ensure navigation happens within Angular zone
   ) {
+
+    this.handleRedirectResult();
+
+  // Listen for auth state changes
+  onAuthStateChanged(this.auth, async (user) => {
+    // ... existing code
+  });
     // Listen for auth state changes
     onAuthStateChanged(this.auth, async (user) => {
       this.ngZone.run(async () => {
@@ -101,26 +109,59 @@ export class AuthService {
 // }
 
 
-  // auth.service.ts
-async signInWithGoogle(): Promise<void> {
+  // auth.service. below working ok ocde of signing with google
+// async signInWithGoogle(): Promise<void> {
+//   console.log("Google sign-in initiated");
+//   try {
+//     const provider = new GoogleAuthProvider();
+
+//     // Add custom parameters
+//     provider.setCustomParameters({
+//       prompt: 'select_account'
+//     });
+
+//     const result = await signInWithPopup(this.auth, provider);
+//     console.log('Google sign-in successful:', result.user);
+
+//     this.ngZone.run(() => {
+//       this.router.navigate(['/dashboard']);
+//     });
+//   } catch (error: unknown) {
+//     this.handleAuthError(error);
+//     throw error;
+//   }
+  // }
+
+
+  async signInWithGoogle(): Promise<void> {
   console.log("Google sign-in initiated");
   try {
     const provider = new GoogleAuthProvider();
-
-    // Add custom parameters
     provider.setCustomParameters({
       prompt: 'select_account'
     });
 
-    const result = await signInWithPopup(this.auth, provider);
-    console.log('Google sign-in successful:', result.user);
-
-    this.ngZone.run(() => {
-      this.router.navigate(['/dashboard']);
-    });
+    // Use redirect instead of popup
+    await signInWithRedirect(this.auth, provider);
+    // Note: Navigation will happen after redirect completes
   } catch (error: unknown) {
     this.handleAuthError(error);
     throw error;
+  }
+}
+
+// Add this method to handle redirect result
+async handleRedirectResult(): Promise<void> {
+  try {
+    const result = await getRedirectResult(this.auth);
+    if (result) {
+      console.log('Google sign-in successful:', result.user);
+      this.ngZone.run(() => {
+        this.router.navigate(['/dashboard']);
+      });
+    }
+  } catch (error) {
+    this.handleAuthError(error);
   }
 }
 
