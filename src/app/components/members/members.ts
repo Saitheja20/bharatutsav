@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { Firestore, collection, query, getDocs, setDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
+import { NavigationComponent } from '../navigation/navigation';
 
 @Component({
   selector: 'app-members',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavigationComponent],
   templateUrl: './members.html',
   styleUrl: './members.css'
 })

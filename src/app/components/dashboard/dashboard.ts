@@ -10,7 +10,7 @@ import { AuthService } from '../../services/auth';
 import { DataService } from '../../services/data';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, Inject } from '@angular/core';
-
+import { NavigationComponent } from '../navigation/navigation';
 // import { Transaction } from '../interfaces/transaction.ts'; // Import the new interface
 // From src/app/components/dashboard/
 
@@ -20,7 +20,7 @@ import { Transaction } from '../../interfaces/transaction.interface';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, BaseChartDirective],
+  imports: [CommonModule, RouterModule, BaseChartDirective, NavigationComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })

@@ -5,11 +5,11 @@ import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { Firestore, collection, query, orderBy, getDocs, addDoc, deleteDoc, doc, getDoc, serverTimestamp } from '@angular/fire/firestore';
 import { Storage, ref, uploadBytes, getDownloadURL, deleteObject } from '@angular/fire/storage';
 import { Router } from '@angular/router';
-
+import { NavigationComponent } from '../navigation/navigation';
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavigationComponent],
   templateUrl: './transactions.html',
   styleUrl: './transactions.css'
 })

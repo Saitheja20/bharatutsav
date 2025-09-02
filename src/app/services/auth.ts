@@ -1,9 +1,10 @@
-import { Injectable, NgZone } from '@angular/core';
+// auth.service.ts
+import { Injectable, NgZone, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Auth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
-import {  signInWithRedirect, getRedirectResult } from '@angular/fire/auth';
 
 @Injectable({
   providedIn: 'root'
@@ -19,119 +20,64 @@ export class AuthService {
     private auth: Auth,
     private firestore: Firestore,
     private router: Router,
-    private ngZone: NgZone // To ensure navigation happens within Angular zone
+    private ngZone: NgZone,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
-
-    this.handleRedirectResult();
-
-  // Listen for auth state changes
-  onAuthStateChanged(this.auth, async (user) => {
-    // ... existing code
-  });
-    // Listen for auth state changes
-    onAuthStateChanged(this.auth, async (user) => {
-      this.ngZone.run(async () => {
-        this.userSource.next(user);
-        if (user) {
-          const userDocRef = doc(this.firestore, 'users', user.uid);
-          const userDocSnap = await getDoc(userDocRef);
-
-          if (userDocSnap.exists()) {
-            const role = userDocSnap.data()['role'] || 'viewer';
-            this.userRoleSource.next(role);
-          } else {
-            // New user, create a document with default role
-            await setDoc(userDocRef, {
-              email: user.email,
-              displayName: user.displayName,
-              role: 'viewer', // Default role for new users
-              createdAt: new Date()
-            });
-            this.userRoleSource.next('viewer');
-          }
-        } else {
-          this.userRoleSource.next('viewer');
-        }
-      });
-    });
+    // Only run authentication in browser environment
+    if (isPlatformBrowser(this.platformId)) {
+      this.initializeAuth();
+    }
   }
 
+  // private initializeAuth() {
+  //   onAuthStateChanged(this.auth, async (user) => {
+  //     this.ngZone.run(async () => {
+  //       this.userSource.next(user);
+  //       if (user) {
+  //         const userDocRef = doc(this.firestore, 'users', user.uid);
+  //         const userDocSnap = await getDoc(userDocRef);
+
+  //         if (userDocSnap.exists()) {
+  //           const role = userDocSnap.data()['role'] || 'viewer';
+  //           this.userRoleSource.next(role);
+  //         } else {
+  //           await setDoc(userDocRef, {
+  //             email: user.email,
+  //             displayName: user.displayName,
+  //             role: 'viewer',
+  //             createdAt: new Date()
+  //           });
+  //           this.userRoleSource.next('viewer');
+  //         }
+  //         this.router.navigate(['/dashboard']);
+  //       } else {
+  //         this.userRoleSource.next('viewer');
+  //       }
+  //     });
+  //   });
+  // }
+
   // async signInWithGoogle(): Promise<void> {
-  //   console.log("its came to auth service");
+  //   // Only run in browser environment
+  //   if (!isPlatformBrowser(this.platformId)) {
+  //     console.warn('Authentication not supported in server environment');
+  //     return;
+  //   }
+
+  //   console.log("Google sign-in initiated");
   //   try {
   //     const provider = new GoogleAuthProvider();
-  //     await signInWithPopup(this.auth, provider);
-  //     this.ngZone.run(() => {
-  //       this.router.navigate(['/dashboard']);
+  //     provider.setCustomParameters({
+  //       prompt: 'select_account'
   //     });
-  //   } catch (error) {
-  //     console.error('Error signing in with Google:', error);
+
+  //     const result = await signInWithPopup(this.auth, provider);
+  //     console.log('Google sign-in successful:', result.user);
+  //   } catch (error: unknown) {
+  //     this.handleAuthError(error);
   //     throw error;
   //   }
   // }
-
-//   async signInWithGoogle(): Promise<void> {
-//   console.log("its came to auth service");
-//   try {
-//     const provider = new GoogleAuthProvider();
-
-//     // Add these popup configurations
-//     provider.setCustomParameters({
-//       prompt: 'select_account'
-//     });
-
-//     // Add popup configuration
-//     const result = await signInWithPopup(this.auth, provider);
-//     console.log('Google sign-in successful:', result.user);
-
-//     this.ngZone.run(() => {
-//       this.router.navigate(['/dashboard']);
-//     });
-//   } catch (error) {
-//     console.error('Error signing in with Google:', error);
-
-//     // More detailed error handling with type guard
-//     if (typeof error === 'object' && error !== null && 'code' in error) {
-//       const err = error as { code: string };
-//       if (err.code === 'auth/popup-blocked') {
-//         alert('Popup was blocked. Please allow popups for this site and try again.');
-//       } else if (err.code === 'auth/popup-closed-by-user') {
-//         console.log('User closed the popup');
-//       } else {
-//         alert('Google sign-in failed. Please try again.');
-//       }
-//     } else {
-//       alert('Google sign-in failed. Please try again.');
-//     }
-
-//     throw error;
-//   }
-// }
-
-
-  // auth.service. below working ok ocde of signing with google
-// async signInWithGoogle(): Promise<void> {
-//   console.log("Google sign-in initiated");
-//   try {
-//     const provider = new GoogleAuthProvider();
-
-//     // Add custom parameters
-//     provider.setCustomParameters({
-//       prompt: 'select_account'
-//     });
-
-//     const result = await signInWithPopup(this.auth, provider);
-//     console.log('Google sign-in successful:', result.user);
-
-//     this.ngZone.run(() => {
-//       this.router.navigate(['/dashboard']);
-//     });
-//   } catch (error: unknown) {
-//     this.handleAuthError(error);
-//     throw error;
-//   }
-  // }
-
 
   async signInWithGoogle(): Promise<void> {
   console.log("Google sign-in initiated");
@@ -141,62 +87,52 @@ export class AuthService {
       prompt: 'select_account'
     });
 
-    // Use redirect instead of popup
-    await signInWithRedirect(this.auth, provider);
-    // Note: Navigation will happen after redirect completes
+    const result = await signInWithPopup(this.auth, provider);
+    console.log('Google sign-in successful:', result.user);
+
+    // Add immediate navigation as fallback
+    setTimeout(() => {
+      console.log('Fallback navigation to dashboard');
+      this.ngZone.run(() => {
+        this.router.navigate(['/dashboard']);
+      });
+    }, 2000);
+
   } catch (error: unknown) {
     this.handleAuthError(error);
     throw error;
   }
 }
 
-// Add this method to handle redirect result
-async handleRedirectResult(): Promise<void> {
-  try {
-    const result = await getRedirectResult(this.auth);
-    if (result) {
-      console.log('Google sign-in successful:', result.user);
-      this.ngZone.run(() => {
-        this.router.navigate(['/dashboard']);
-      });
+  private handleAuthError(error: unknown): void {
+    if (error instanceof Error) {
+      const firebaseError = error as any;
+      console.error('Firebase Auth Error Code:', firebaseError.code);
+      console.error('Firebase Auth Error Message:', firebaseError.message);
+
+      // Use console.warn instead of alert for SSR compatibility
+      if (isPlatformBrowser(this.platformId)) {
+        switch (firebaseError.code) {
+          case 'auth/popup-blocked':
+            alert('Popup was blocked. Please allow popups for this site and try again.');
+            break;
+          case 'auth/popup-closed-by-user':
+            console.log('User cancelled sign-in');
+            break;
+          default:
+            alert('Google sign-in failed. Please try again.');
+        }
+      } else {
+        console.warn('Authentication error (server-side):', firebaseError.message);
+      }
     }
-  } catch (error) {
-    this.handleAuthError(error);
   }
-}
-
-private handleAuthError(error: unknown): void {
-  if (error instanceof Error) {
-    const firebaseError = error as any;
-    console.error('Firebase Auth Error Code:', firebaseError.code);
-    console.error('Firebase Auth Error Message:', firebaseError.message);
-
-    switch (firebaseError.code) {
-      case 'auth/internal-error':
-        console.error('Internal error - likely CSP blocking Google APIs');
-        alert('Authentication service blocked. Please check browser settings and disable ad blockers.');
-        break;
-      case 'auth/popup-blocked':
-        alert('Popup was blocked. Please allow popups for this site and try again.');
-        break;
-      case 'auth/popup-closed-by-user':
-        console.log('User closed the popup');
-        break;
-      case 'auth/network-request-failed':
-        alert('Network error. Please check your internet connection.');
-        break;
-      default:
-        console.error('Error signing in with Google:', error);
-        alert('Google sign-in failed. Please try again.');
-    }
-  } else {
-    console.error('Unknown error:', error);
-    alert('An unexpected error occurred.');
-  }
-}
-
 
   async signOut(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     try {
       await signOut(this.auth);
       this.ngZone.run(() => {
@@ -207,4 +143,56 @@ private handleAuthError(error: unknown): void {
       throw error;
     }
   }
+
+  // auth.service.ts
+private async initializeAuth() {
+  onAuthStateChanged(this.auth, async (user) => {
+    this.ngZone.run(async () => {
+      this.userSource.next(user);
+      if (user) {
+        try {
+          const userDocRef = doc(this.firestore, 'users', user.uid);
+
+          // Add timeout and better error handling
+          const userDocSnap = await Promise.race([
+            getDoc(userDocRef),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Timeout')), 5000)
+            )
+          ]) as any;
+
+          if (userDocSnap.exists()) {
+            const role = userDocSnap.data()['role'] || 'viewer';
+            this.userRoleSource.next(role);
+            console.log('User role loaded:', role);
+          } else {
+            // Create user document
+            await setDoc(userDocRef, {
+              email: user.email,
+              displayName: user.displayName,
+              role: 'viewer',
+              createdAt: new Date()
+            });
+            this.userRoleSource.next('viewer');
+            console.log('New user document created');
+          }
+
+          // Navigate to dashboard after successful user setup
+          console.log('Navigating to dashboard...');
+          this.router.navigate(['/dashboard']);
+
+        } catch (error) {
+          console.error('Firestore error:', error);
+          // Still allow navigation even if Firestore fails
+          this.userRoleSource.next('viewer');
+          this.router.navigate(['/dashboard']);
+        }
+      } else {
+        this.userRoleSource.next('viewer');
+        console.log('User signed out');
+      }
+    });
+  });
+}
+
 }

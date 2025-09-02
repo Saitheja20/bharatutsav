@@ -53,16 +53,26 @@ async loginWithEmail() {
     alert(message);
   }
 }
-
+// In your LoginComponent
 async signInWithGoogle() {
+  console.log('Google sign-in button clicked');
   try {
     await this.authService.signInWithGoogle();
+    console.log('Google sign-in method completed');
   } catch (error) {
-    const message = handleFirebaseError(error);
-    console.error('Google login error:', error);
-    alert(message);
+    console.error('Google login error in component:', error);
   }
 }
+
+// async signInWithGoogle() {
+//   try {
+//     await this.authService.signInWithGoogle();
+//   } catch (error) {
+//     const message = handleFirebaseError(error);
+//     console.error('Google login error:', error);
+//     alert(message);
+//   }
+// }
 // async loginWithEmail() {
 //   try {
 //     await signInWithEmailAndPassword(this.auth, this.email, this.password);
