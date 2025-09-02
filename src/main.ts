@@ -44,7 +44,7 @@
 // .catch(err => console.error(err));
 
 
-import 'zone.js'; // This line is crucial and must be at the top
+ // This line is crucial and must be at the top
 
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';

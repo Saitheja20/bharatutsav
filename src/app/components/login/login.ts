@@ -1,33 +1,44 @@
 import { Component, OnInit } from '@angular/core';
-import { Auth, GoogleAuthProvider, signInWithPopup } from '@angular/fire/auth';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
+import { AuthService } from '../../services/auth'; // Update path
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [], // Add any Angular modules you need here
+  imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
-  styleUrl: './login.css'
+  styleUrls: ['./login.css']
 })
 export class LoginComponent implements OnInit {
+  email: string = '';
+  password: string = '';
 
-  constructor(private auth: Auth, private router: Router) { }
+  private auth = inject(Auth);
+  private authService = inject(AuthService);
 
-  ngOnInit(): void {
-    // You can optionally add logic here to check if the user is already authenticated
-    // and redirect them if so.
+  ngOnInit(): void {}
+
+  async loginWithEmail() {
+    try {
+      await signInWithEmailAndPassword(this.auth, this.email, this.password);
+      // AuthService will handle navigation automatically via onAuthStateChanged
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Invalid email or password');
+    }
   }
 
   async signInWithGoogle() {
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(this.auth, provider);
-      // After successful login, redirect to the dashboard
-      this.router.navigate(['/dashboard']);
+      await this.authService.signInWithGoogle();
+      // AuthService handles navigation automatically
     } catch (error) {
-      console.error('Error signing in:', error);
-      alert('Error signing in. Please try again.');
+      console.error('Google login error:', error);
+      alert('Google sign-in failed. Try again.');
     }
   }
-
 }
