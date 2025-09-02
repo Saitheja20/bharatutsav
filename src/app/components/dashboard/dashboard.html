@@ -47,7 +47,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <!-- <div class="row">
         <div class="col-lg-6 mb-4">
             <div class="card">
                 <div class="card-header">
@@ -68,7 +68,36 @@
                 </div>
             </div>
         </div>
+    </div> -->
+
+    <div class="row">
+  <div class="col-lg-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Credits vs Debits</h5>
+      </div>
+      <div class="card-body">
+        <ng-container *ngIf="isBrowser">
+          <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
+        </ng-container>
+      </div>
     </div>
+  </div>
+
+  <div class="col-lg-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Daily Summary</h5>
+      </div>
+      <div class="card-body">
+        <ng-container *ngIf="isBrowser">
+          <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
+
 
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">

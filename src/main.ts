@@ -25,20 +25,30 @@
 // })
 // .catch(err => console.error(err));
 
+//  import 'zone.js';
+// import { enableProdMode,} from '@angular/core';
+// import { bootstrapApplication } from '@angular/platform-browser';
+// import { AppComponent } from './app/app';
+// import { environment } from './environments/environment';
 
-import { enableProdMode, NgZone } from '@angular/core';
+// if (environment.production) {
+//   enableProdMode();
+// }
+
+// // Disable Zone.js by providing NgZone as null
+// bootstrapApplication(AppComponent, {
+//   providers: [
+//     { provide: NgZone, useValue: null }
+//   ]
+// })
+// .catch(err => console.error(err));
+
+
+import 'zone.js'; // This line is crucial and must be at the top
+
 import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app';
-import { environment } from './environments/environment';
 
-if (environment.production) {
-  enableProdMode();
-}
-
-// Disable Zone.js by providing NgZone as null
-bootstrapApplication(AppComponent, {
-  providers: [
-    { provide: NgZone, useValue: null }
-  ]
-})
-.catch(err => console.error(err));
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));

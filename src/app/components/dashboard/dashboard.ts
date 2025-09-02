@@ -1,10 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { Firestore, collection, query, orderBy, getDocs, doc, getDoc, Timestamp } from '@angular/fire/firestore';
 import { Router, RouterModule } from '@angular/router';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { AuthService } from '../../services/auth';
+import { DataService } from '../../services/data';
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, Inject } from '@angular/core';
+
 // import { Transaction } from '../interfaces/transaction.ts'; // Import the new interface
 // From src/app/components/dashboard/
 
@@ -41,12 +47,15 @@ export class DashboardComponent implements OnInit {
     ]
   };
   barChartType: ChartType = 'bar';
-
+isBrowser: boolean = false;
   constructor(
+      private authService: AuthService,
+    private dataService: DataService,
     private auth: Auth,
     private firestore: Firestore,
-    private router: Router
-  ) { }
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {  this.isBrowser = isPlatformBrowser(this.platformId); }
 
   ngOnInit(): void {
     onAuthStateChanged(this.auth, (user) => {

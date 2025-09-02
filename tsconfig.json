@@ -21,7 +21,7 @@
     "strictInputAccessModifiers": true,
     "typeCheckHostBindings": true,
     "strictTemplates": true,
-    "enableNgZone": false
+    "enableNgZone": true
   },
   "files": [],
   "references": [

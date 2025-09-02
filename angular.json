@@ -63,6 +63,7 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+           
           "configurations": {
             "production": {
               "buildTarget": "festival-ledger-app:build:production"
