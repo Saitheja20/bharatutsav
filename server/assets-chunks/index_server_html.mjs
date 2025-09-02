@@ -1,0 +1,50 @@
+export default `<!-- <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Festival Ledger App</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+<meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
+
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com;
+                 script-src-elem 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://www.gstatic.com;
+                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com;
+                 font-src 'self' https://fonts.gstatic.com;
+                 connect-src 'self' https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com;
+                 frame-src 'self' https://accounts.google.com;">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html> -->
+
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Festival Ledger App</title>
+  <base href="https://Saitheja20.github.io/bharatutsav/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Updated CSP configuration -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+                 script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com;
+                 script-src-elem 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://www.gstatic.com;
+                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com;
+                 font-src 'self' https://fonts.gstatic.com;
+                 connect-src 'self' https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com;
+                 frame-src 'self' https://accounts.google.com https://festival-ledger.firebaseapp.com;">
+<link rel="stylesheet" href="styles-X4X5L32H.css"></head>
+<body><script type="text/javascript" id="ng-event-dispatch-contract">(()=>{function p(t,n,r,o,e,i,f,m){return{eventType:t,event:n,targetElement:r,eic:o,timeStamp:e,eia:i,eirp:f,eiack:m}}function u(t){let n=[],r=e=>{n.push(e)};return{c:t,q:n,et:[],etc:[],d:r,h:e=>{r(p(e.type,e,e.target,t,Date.now()))}}}function s(t,n,r){for(let o=0;o<n.length;o++){let e=n[o];(r?t.etc:t.et).push(e),t.c.addEventListener(e,t.h,r)}}function c(t,n,r,o,e=window){let i=u(t);e._ejsas||(e._ejsas={}),e._ejsas[n]=i,s(i,r),s(i,o,!0)}window.__jsaction_bootstrap=c;})();
+</script>
+  <app-root></app-root>
+<script src="scripts-TTWY4XDY.js" defer=""></script><script src="main-YZ5QJWXL.js" type="module"></script></body>
+</html>
+`;

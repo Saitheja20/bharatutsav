@@ -1,0 +1,9 @@
+{
+  "routes": {
+    "/bharatutsav": {},
+    "/bharatutsav/dashboard": {},
+    "/bharatutsav/login": {},
+    "/bharatutsav/members": {},
+    "/bharatutsav/transactions": {}
+  }
+}
