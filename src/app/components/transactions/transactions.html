@@ -1,0 +1,208 @@
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-4 mb-4" *ngIf="['admin', 'editor'].includes(userRole)">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus me-2"></i>Add Transaction
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form (ngSubmit)="addTransaction(transactionForm)" #transactionForm="ngForm">
+                        <div class="mb-3">
+                            <label for="transactionType" class="form-label">Type</label>
+                            <select class="form-select" id="transactionType" name="type" [(ngModel)]="newTransaction.type" required>
+                                <option value="">Select Type</option>
+                                <option value="credit">Credit (Money In)</option>
+                                <option value="debit">Debit (Money Out)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="transactionAmount" class="form-label">Amount (₹)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="transactionAmount" name="amount" [(ngModel)]="newTransaction.amount" min="0" step="0.01" placeholder="0.00" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="transactionNote" class="form-label">Description</label>
+                            <textarea class="form-control" id="transactionNote" name="note" [(ngModel)]="newTransaction.note" rows="3" placeholder="Enter transaction details..." required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="transactionImage" class="form-label">
+                                Receipt/Image <small class="text-muted">(Optional)</small>
+                            </label>
+                            <input type="file" class="form-control" id="transactionImage" accept="image/*" (change)="onFileSelected($event)">
+                        </div>
+
+                        <div id="imagePreview" class="mb-3" [style.display]="imageUrl ? 'block' : 'none'">
+                            <img [src]="imageUrl" alt="Preview" class="img-thumbnail" style="max-height: 150px;">
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="removeImage()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" [disabled]="isAddingTransaction">
+                            <i class="fas" [ngClass]="{'fa-spinner fa-spin': isAddingTransaction, 'fa-save': !isAddingTransaction}"></i>
+                            {{ isAddingTransaction ? 'Adding...' : 'Add Transaction' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>All Transactions
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" id="filterType" style="width: auto;" [(ngModel)]="filterType" (change)="filterTransactions()">
+                            <option value="">All Types</option>
+                            <option value="credit">Credits Only</option>
+                            <option value="debit">Debits Only</option>
+                        </select>
+                        <button class="btn btn-outline-danger btn-sm" *ngIf="userRole === 'admin'" (click)="clearAllTransactions()">
+                            <i class="fas fa-trash me-1"></i>Clear All
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-2">
+                                    <small class="text-muted">Credits</small>
+                                    <div class="h5 text-success mb-0">₹{{ summaryCredits | number:'1.2-2' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-2">
+                                    <small class="text-muted">Debits</small>
+                                    <div class="h5 text-danger mb-0">₹{{ summaryDebits | number:'1.2-2' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-2">
+                                    <small class="text-muted">Balance</small>
+                                    <div class="h5 text-info mb-0">₹{{ summaryBalance | number:'1.2-2' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                    <th>Date</th>
+                                    <th>Added By</th>
+                                    <th>Image</th>
+                                    <th *ngIf="['admin', 'editor'].includes(userRole)">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngIf="isLoadingTransactions">
+                                    <td colspan="7" class="text-center text-muted">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Loading transactions...
+                                    </td>
+                                </tr>
+                                <tr *ngIf="!isLoadingTransactions && filteredTransactions.length === 0">
+                                    <td colspan="7" class="text-center text-muted">
+                                        <i class="fas fa-receipt fa-2x mb-3"></i>
+                                        <p>No transactions found</p>
+                                    </td>
+                                </tr>
+                                <ng-container *ngIf="!isLoadingTransactions">
+                                    <tr *ngFor="let transaction of filteredTransactions">
+                                        <td>
+                                            <span class="badge" [ngClass]="{'bg-success': transaction.type === 'credit', 'bg-danger': transaction.type === 'debit'}">
+                                                <i class="fas" [ngClass]="{'fa-arrow-up': transaction.type === 'credit', 'fa-arrow-down': transaction.type === 'debit'}"></i>
+                                                {{ transaction.type | titlecase }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong>₹{{ transaction.amount | number:'1.2-2' }}</strong>
+                                        </td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 200px;" [title]="transaction.note">
+                                                {{ transaction.note || 'No description' }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small>{{ transaction.createdAt?.toDate() | date:'shortDate' }}</small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ transaction.createdByName || 'Unknown' }}</small>
+                                        </td>
+                                        <td>
+                                            <button *ngIf="transaction.imageUrl" class="btn btn-sm btn-outline-primary" (click)="showImageModal(transaction.imageUrl)">
+                                                <i class="fas fa-image"></i>
+                                            </button>
+                                            <span *ngIf="!transaction.imageUrl" class="text-muted">-</span>
+                                        </td>
+                                        <td *ngIf="['admin', 'editor'].includes(userRole)">
+                                            <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(transaction)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transaction Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img [src]="modalImageUrl" alt="Transaction Image" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this transaction?</p>
+                <div class="border p-3 rounded" *ngIf="transactionToDelete">
+                    <strong>Type:</strong> {{ transactionToDelete.type | titlecase }}<br>
+                    <strong>Amount:</strong> ₹{{ transactionToDelete.amount | number:'1.2-2' }}<br>
+                    <strong>Description:</strong> {{ transactionToDelete.note || 'No description' }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" (click)="deleteTransaction()">
+                    <i class="fas fa-trash me-2"></i>Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

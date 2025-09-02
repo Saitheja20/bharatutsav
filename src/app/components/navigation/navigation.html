@@ -1,0 +1,72 @@
+<!-- <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand" routerLink="/dashboard">
+      <i class="fas fa-calendar-alt me-2"></i>
+      Festival Ledger
+    </a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
+            <i class="fas fa-home me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/transactions" routerLinkActive="active">
+            <i class="fas fa-exchange-alt me-1"></i>Transactions
+          </a>
+        </li>
+        <li class="nav-item" id="membersNavItem">
+          <a class="nav-link" routerLink="/members" routerLinkActive="active">
+            <i class="fas fa-users me-1"></i>Members
+          </a>
+        </li>
+      </ul>
+    </div>
+    </div>
+</nav> -->
+
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary" id="navbar" [ngStyle]="{'display': isAuth ? 'block' : 'none'}">
+    <div class="container">
+        <a class="navbar-brand" routerLink="/dashboard">
+            <i class="fas fa-calendar-alt me-2"></i>
+            Festival Ledger
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" routerLink="/transactions" routerLinkActive="active">
+                        <i class="fas fa-exchange-alt me-1"></i>Transactions
+                    </a>
+                </li>
+                <li class="nav-item" [ngStyle]="{'display': userRole === 'admin' ? 'block' : 'none'}">
+                    <a class="nav-link" routerLink="/members" routerLinkActive="active">
+                        <i class="fas fa-users me-1"></i>Members
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <img [src]="userPhotoUrl" alt="User" class="rounded-circle me-2" width="32" height="32" [ngStyle]="{'display': userPhotoUrl ? 'block' : 'none'}">
+                        <span id="userName">{{ userName }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" (click)="signOut()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>

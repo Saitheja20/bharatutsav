@@ -1,0 +1,252 @@
+<div class="container mt-4">
+    <div *ngIf="userRole !== 'admin'">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card border-danger">
+                    <div class="card-body text-center">
+                        <i class="fas fa-lock fa-4x text-danger mb-3"></i>
+                        <h3>Access Denied</h3>
+                        <p class="text-muted">Only administrators can access the members page.</p>
+                        <a routerLink="/dashboard" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" *ngIf="userRole === 'admin'">
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Add Member
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form (ngSubmit)="addMember()" #memberForm="ngForm">
+                        <div class="mb-3">
+                            <label for="memberEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="memberEmail"
+                                   placeholder="user@example.com" [(ngModel)]="newMember.email" name="email" required>
+                            <div class="form-text">User must sign in with Google first</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="memberRole" class="form-label">Role</label>
+                            <select class="form-select" id="memberRole" [(ngModel)]="newMember.role" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="viewer">Viewer - Can only view transactions</option>
+                                <option value="editor">Editor - Can add/edit/delete transactions</option>
+                                <option value="admin">Admin - Full access including members</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" [disabled]="isAddingMember">
+                            <i class="fas" [ngClass]="{'fa-spinner fa-spin': isAddingMember, 'fa-user-plus': !isAddingMember}"></i>
+                            {{ isAddingMember ? 'Adding...' : 'Add Member' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Role Permissions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-success">
+                            <i class="fas fa-eye me-2"></i>Viewer
+                        </h6>
+                        <ul class="small text-muted mb-0">
+                            [cite_start]<li>View transactions only [cite: 1]</li>
+                            [cite_start]<li>Access dashboard [cite: 1]</li>
+                            [cite_start]<li>No editing permissions [cite: 1]</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-warning">
+                            <i class="fas fa-edit me-2"></i>Editor
+                        </h6>
+                        <ul class="small text-muted mb-0">
+                            [cite_start]<li>Add/edit/delete transactions only [cite: 1]</li>
+                            [cite_start]<li>View dashboard & reports [cite: 1, 23]</li>
+                            [cite_start]<li>Cannot manage members [cite: 1]</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-0">
+                        <h6 class="text-danger">
+                            <i class="fas fa-crown me-2"></i>Admin
+                        </h6>
+                        <ul class="small text-muted mb-0">
+                            [cite_start]<li>Full access, including member management [cite: 1]</li>
+                            [cite_start]<li>Clear all transactions [cite: 1]</li>
+                            [cite_start]<li>System administration [cite: 1]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>All Members
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" [(ngModel)]="filterRole" (change)="filterMembers()" style="width: auto;">
+                            <option value="">All Roles</option>
+                            <option value="admin">Admins</option>
+                            <option value="editor">Editors</option>
+                            <option value="viewer">Viewers</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngIf="isLoadingMembers">
+                                    <td colspan="6" class="text-center text-muted">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Loading members...
+                                    </td>
+                                </tr>
+                                <tr *ngIf="!isLoadingMembers && filteredMembers.length === 0">
+                                    <td colspan="6" class="text-center text-muted">
+                                        <i class="fas fa-users fa-2x mb-3"></i>
+                                        <p>No members found</p>
+                                    </td>
+                                </tr>
+                                <ng-container *ngIf="!isLoadingMembers">
+                                    <tr *ngFor="let member of filteredMembers">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img *ngIf="member.photoURL" [src]="member.photoURL" alt="User" class="rounded-circle me-2" width="32" height="32">
+                                                <div *ngIf="!member.photoURL" class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-user text-white"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ member.displayName || member.email?.split('@')[0] || 'Unknown' }}</div>
+                                                    <small *ngIf="member.id === currentUserId" class="text-primary">You</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ member.email || 'No email' }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge" [ngClass]="getRoleBadgeClass(member.role)">
+                                                <i class="fas" [ngClass]="getRoleIcon(member.role)"></i>
+                                                {{ member.role | titlecase }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge" [ngClass]="getStatusBadgeClass(member.status)">
+                                                {{ member.status | titlecase }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ member.invitedAt?.toDate() | date:'shortDate' }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group" *ngIf="member.id !== currentUserId">
+                                                <button class="btn btn-sm btn-outline-primary" (click)="showChangeRoleModal(member)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" (click)="showRemoveMemberModal(member)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            <span *ngIf="member.id === currentUserId" class="text-muted">-</span>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="changeRoleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change User Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3" *ngIf="memberToUpdate">
+                    <div class="border p-3 rounded">
+                        <strong>User:</strong> {{ memberToUpdate.displayName || memberToUpdate.email }}<br>
+                        <strong>Current Role:</strong> {{ memberToUpdate.role | titlecase }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="newRole" class="form-label">New Role</label>
+                    <select class="form-select" id="newRole" [(ngModel)]="newRole">
+                        <option value="viewer">Viewer</option>
+                        <option value="editor">Editor</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" [disabled]="isUpdatingRole" (click)="updateMemberRole()">
+                    <i class="fas" [ngClass]="{'fa-spinner fa-spin': isUpdatingRole, 'fa-save': !isUpdatingRole}"></i>
+                    Update Role
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="removeMemberModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Remove Member</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove this member?</p>
+                <div class="border p-3 rounded" *ngIf="memberToRemove">
+                    <strong>User:</strong> {{ memberToRemove.displayName || memberToRemove.email }}
+                </div>
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone. The user will lose access to the system.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" [disabled]="isRemovingMember" (click)="removeMember()">
+                    <i class="fas" [ngClass]="{'fa-spinner fa-spin': isRemovingMember, 'fa-user-times': !isRemovingMember}"></i>
+                    Remove Member
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

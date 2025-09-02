@@ -1,0 +1,110 @@
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Credits</h6>
+                            <h3 class="mb-0">₹{{ totalCredits | number:'1.2-2' }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-up fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Debits</h6>
+                            <h3 class="mb-0">₹{{ totalDebits | number:'1.2-2' }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-down fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Current Balance</h6>
+                            <h3 class="mb-0">₹{{ currentBalance | number:'1.2-2' }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-balance-scale fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Credits vs Debits</h5>
+                </div>
+                <div class="card-body">
+                    <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Daily Summary</h5>
+                </div>
+                <div class="card-body">
+                    <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Recent Transactions</h5>
+            <a routerLink="/transactions" class="btn btn-primary btn-sm">View All</a>
+        </div>
+        <div class="card-body">
+            <div *ngIf="isLoadingTransactions" class="text-center text-muted">
+                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                <p>Loading transactions...</p>
+            </div>
+
+            <div *ngIf="!isLoadingTransactions && recentTransactions.length === 0" class="text-center text-muted">
+                <i class="fas fa-receipt fa-2x mb-3"></i>
+                <p>No transactions found</p>
+                <a routerLink="/transactions" class="btn btn-primary">Add First Transaction</a>
+            </div>
+
+            <div *ngIf="!isLoadingTransactions && recentTransactions.length > 0">
+                <div class="row border-bottom py-2" *ngFor="let transaction of recentTransactions">
+                    <div class="col-md-2">
+                        <span class="badge" [ngClass]="{'bg-success': transaction.type === 'credit', 'bg-danger': transaction.type === 'debit'}">
+                            {{ transaction.type | titlecase }}
+                        </span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>₹{{ transaction.amount | number:'1.2-2' }}</strong>
+                    </div>
+                    <div class="col-md-4">
+                        {{ transaction.note || 'No description' }}
+                    </div>
+                    <div class="col-md-3 text-end text-muted">
+                        <small>{{ transaction.createdAt.toDate() | date:'shortDate' }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
