@@ -48,18 +48,112 @@ export class AuthService {
     });
   }
 
-  async signInWithGoogle(): Promise<void> {
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(this.auth, provider);
-      this.ngZone.run(() => {
-        this.router.navigate(['/dashboard']);
-      });
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      throw error;
-    }
+  // async signInWithGoogle(): Promise<void> {
+  //   console.log("its came to auth service");
+  //   try {
+  //     const provider = new GoogleAuthProvider();
+  //     await signInWithPopup(this.auth, provider);
+  //     this.ngZone.run(() => {
+  //       this.router.navigate(['/dashboard']);
+  //     });
+  //   } catch (error) {
+  //     console.error('Error signing in with Google:', error);
+  //     throw error;
+  //   }
+  // }
+
+//   async signInWithGoogle(): Promise<void> {
+//   console.log("its came to auth service");
+//   try {
+//     const provider = new GoogleAuthProvider();
+
+//     // Add these popup configurations
+//     provider.setCustomParameters({
+//       prompt: 'select_account'
+//     });
+
+//     // Add popup configuration
+//     const result = await signInWithPopup(this.auth, provider);
+//     console.log('Google sign-in successful:', result.user);
+
+//     this.ngZone.run(() => {
+//       this.router.navigate(['/dashboard']);
+//     });
+//   } catch (error) {
+//     console.error('Error signing in with Google:', error);
+
+//     // More detailed error handling with type guard
+//     if (typeof error === 'object' && error !== null && 'code' in error) {
+//       const err = error as { code: string };
+//       if (err.code === 'auth/popup-blocked') {
+//         alert('Popup was blocked. Please allow popups for this site and try again.');
+//       } else if (err.code === 'auth/popup-closed-by-user') {
+//         console.log('User closed the popup');
+//       } else {
+//         alert('Google sign-in failed. Please try again.');
+//       }
+//     } else {
+//       alert('Google sign-in failed. Please try again.');
+//     }
+
+//     throw error;
+//   }
+// }
+
+
+  // auth.service.ts
+async signInWithGoogle(): Promise<void> {
+  console.log("Google sign-in initiated");
+  try {
+    const provider = new GoogleAuthProvider();
+
+    // Add custom parameters
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+
+    const result = await signInWithPopup(this.auth, provider);
+    console.log('Google sign-in successful:', result.user);
+
+    this.ngZone.run(() => {
+      this.router.navigate(['/dashboard']);
+    });
+  } catch (error: unknown) {
+    this.handleAuthError(error);
+    throw error;
   }
+}
+
+private handleAuthError(error: unknown): void {
+  if (error instanceof Error) {
+    const firebaseError = error as any;
+    console.error('Firebase Auth Error Code:', firebaseError.code);
+    console.error('Firebase Auth Error Message:', firebaseError.message);
+
+    switch (firebaseError.code) {
+      case 'auth/internal-error':
+        console.error('Internal error - likely CSP blocking Google APIs');
+        alert('Authentication service blocked. Please check browser settings and disable ad blockers.');
+        break;
+      case 'auth/popup-blocked':
+        alert('Popup was blocked. Please allow popups for this site and try again.');
+        break;
+      case 'auth/popup-closed-by-user':
+        console.log('User closed the popup');
+        break;
+      case 'auth/network-request-failed':
+        alert('Network error. Please check your internet connection.');
+        break;
+      default:
+        console.error('Error signing in with Google:', error);
+        alert('Google sign-in failed. Please try again.');
+    }
+  } else {
+    console.error('Unknown error:', error);
+    alert('An unexpected error occurred.');
+  }
+}
+
 
   async signOut(): Promise<void> {
     try {

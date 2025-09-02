@@ -5,7 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
 import { AuthService } from '../../services/auth'; // Update path
 import { inject } from '@angular/core';
-
+  import { getErrorMessage } from '../../utils/error';
+import { handleFirebaseError } from '../../utils/firebase-error';
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -22,23 +23,63 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  async loginWithEmail() {
-    try {
-      await signInWithEmailAndPassword(this.auth, this.email, this.password);
-      // AuthService will handle navigation automatically via onAuthStateChanged
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('Invalid email or password');
-    }
-  }
+  // async loginWithEmail() {
+  //   try {
+  //     await signInWithEmailAndPassword(this.auth, this.email, this.password);
+  //     console.log('Email login successful');
+  //   } catch (error) {
+  //     console.error('Login error:', error);
+  //     alert('Invalid email or password');
+  //   }
+  // }
 
-  async signInWithGoogle() {
-    try {
-      await this.authService.signInWithGoogle();
-      // AuthService handles navigation automatically
-    } catch (error) {
-      console.error('Google login error:', error);
-      alert('Google sign-in failed. Try again.');
-    }
+  // async signInWithGoogle() {
+  //   console.log('Google sign-in button clicked');
+  //   try {
+  //     await this.authService.signInWithGoogle();
+  //     console.log('Google sign-in completed');
+  //   } catch (error) {
+  //     console.error('Google login error:', error);
+  //   }
+  // }
+
+
+async loginWithEmail() {
+  try {
+    await signInWithEmailAndPassword(this.auth, this.email, this.password);
+  } catch (error) {
+    const message = handleFirebaseError(error);
+    console.error('Login error:', error);
+    alert(message);
   }
+}
+
+async signInWithGoogle() {
+  try {
+    await this.authService.signInWithGoogle();
+  } catch (error) {
+    const message = handleFirebaseError(error);
+    console.error('Google login error:', error);
+    alert(message);
+  }
+}
+// async loginWithEmail() {
+//   try {
+//     await signInWithEmailAndPassword(this.auth, this.email, this.password);
+//   } catch (error) {
+//     const message = getErrorMessage(error);
+//     console.error('Login error:', message);
+//     alert('Invalid email or password');
+//   }
+// }
+
+// async signInWithGoogle() {
+//   try {
+//     await this.authService.signInWithGoogle();
+//   } catch (error) {
+//     const message = getErrorMessage(error);
+//     console.error('Google login error:', message);
+//     alert('Google sign-in failed. Try again.');
+//   }
+// }
 }

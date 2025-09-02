@@ -13,6 +13,8 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+
+          
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -63,7 +65,7 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
-           
+
           "configurations": {
             "production": {
               "buildTarget": "festival-ledger-app:build:production"
@@ -80,6 +82,7 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
+
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {

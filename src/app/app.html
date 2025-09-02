@@ -1,4 +1,39 @@
    <!-- <h1>Hello, {{ title }}</h1> -->
       <!-- <app-navigation></app-navigation> -->
+<!--
+<router-outlet></router-outlet> -->
+<!-- <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Festival Ledger App</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-<router-outlet></router-outlet>
+
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://www.gstatic.com;
+                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com;
+                 font-src 'self' https://fonts.gstatic.com;
+                 connect-src 'self' https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;
+                 frame-src 'self' https://accounts.google.com;">
+</head>
+<body>
+
+   <router-outlet></router-outlet>
+</body>
+</html> -->
+
+
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- This should NOT be in app.html -->
+</head>
+<body>
+  <router-outlet></router-outlet> <!-- Should be <app-root></app-root> -->
+</body>
+</html>
