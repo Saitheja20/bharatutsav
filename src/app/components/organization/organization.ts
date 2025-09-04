@@ -25,6 +25,12 @@ export class OrganizationsComponent implements OnInit {
   private router = inject(Router);
   private ngZone = inject(NgZone);
   private organizationService = inject(OrganizationService);
+ private authStateResolved = false; // Track if auth state is resolved
+
+  // Subscriptions for cleanup
+  // private subscriptions: Subscription[] = [];
+  // ADD THIS LINE - Declare the missing property
+  private authStateSubscription?: Subscription;
 
   // Subscriptions for cleanup
   private subscriptions: Subscription[] = [];
@@ -86,8 +92,11 @@ export class OrganizationsComponent implements OnInit {
   currentBalance = 0;
 
   ngOnInit(): void {
+    // Use runInInjectionContext to avoid injection context warnings
+    this.authStateSubscription = new Subscription();
+
     this.ngZone.run(() => {
-      onAuthStateChanged(this.auth, async (user: User | null) => {
+      const unsubscribe = onAuthStateChanged(this.auth, async (user: User | null) => {
         this.isAuthLoading = false;
 
         if (!user) {
@@ -95,17 +104,20 @@ export class OrganizationsComponent implements OnInit {
           return;
         }
 
+        console.log('✅ User authenticated:', user.uid);
         this.currentUser = user;
         this.subscribeToOrganizations();
       });
+
+      // Store unsubscribe function
+      this.authStateSubscription?.add(unsubscribe);
     });
   }
 
-  ngOnDestroy(): void {
-    // Clean up subscriptions
+    ngOnDestroy(): void {
+    this.authStateSubscription?.unsubscribe();
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
-
   // FIXED: Subscribe to real-time organization updates
   // subscribeToOrganizations(): void {
   //   this.isLoadingOrgs = true;
@@ -130,34 +142,128 @@ export class OrganizationsComponent implements OnInit {
 
   //   this.subscriptions.push(orgSub);
   // }
+
+
+// subscribeToOrganizations(): void {
+//   this.isLoadingOrgs = true;
+//   console.log('🔄 Starting organization subscription...');
+
+//   const orgSub = this.organizationService.getUserOrganizations().subscribe({
+//     next: (organizations) => {
+//       console.log('✅ Organizations received in component:', organizations);
+//       console.log('👤 Current user ID:', this.currentUser?.uid);
+
+//       this.organizations = organizations;
+//       this.isLoadingOrgs = false;
+
+//       if (this.organizations.length > 0 && !this.selectedOrg) {
+//         console.log('🎯 Auto-selecting first organization:', this.organizations[0]);
+//         this.selectOrganization(this.organizations[0]);
+//       } else if (this.organizations.length === 0) {
+//         console.warn('⚠️ No organizations found - check Firestore data');
+//       }
+//     },
+//     error: (error) => {
+//       console.error('❌ Error loading organizations:', error);
+//       this.isLoadingOrgs = false;
+//     }
+//   });
+
+//   this.subscriptions.push(orgSub);
+// }
+
+
 subscribeToOrganizations(): void {
   this.isLoadingOrgs = true;
   console.log('🔄 Starting organization subscription...');
+  console.log('👤 Current user ID:', this.currentUser?.uid);
+
+  // ✅ Add validation
+  if (!this.currentUser?.uid) {
+    console.error('❌ No authenticated user found');
+    this.isLoadingOrgs = false;
+    return;
+  }
 
   const orgSub = this.organizationService.getUserOrganizations().subscribe({
     next: (organizations) => {
-      console.log('✅ Organizations received in component:', organizations);
-      console.log('👤 Current user ID:', this.currentUser?.uid);
+      console.log('✅ Organizations received:', organizations.length, 'items');
+      console.log('📊 Organization data:', organizations);
 
       this.organizations = organizations;
       this.isLoadingOrgs = false;
 
       if (this.organizations.length > 0 && !this.selectedOrg) {
-        console.log('🎯 Auto-selecting first organization:', this.organizations[0]);
+        console.log('🎯 Auto-selecting first organization:', this.organizations[0].name);
         this.selectOrganization(this.organizations[0]);
       } else if (this.organizations.length === 0) {
-        console.warn('⚠️ No organizations found - check Firestore data');
+        console.warn('⚠️ No organizations found');
+        console.log('🔍 Possible causes:');
+        console.log('  1. Missing Firestore composite index');
+        console.log('  2. User not in any organization members array');
+        console.log('  3. Firestore security rules blocking access');
       }
     },
+
     error: (error) => {
       console.error('❌ Error loading organizations:', error);
+      console.error('📝 Error details:', {
+        code: error.code,
+        message: error.message,
+        userId: this.currentUser?.uid
+      });
+
       this.isLoadingOrgs = false;
+
+      // ✅ Specific error handling
+      if (error.code === 'failed-precondition') {
+        console.error('🔥 FIRESTORE INDEX REQUIRED!');
+        console.error('📋 Click this link to create index:',
+          'https://console.firebase.google.com/project/festival-ledger/firestore/indexes');
+        alert('Database index required! Check console for link to create index.');
+      } else if (error.code === 'permission-denied') {
+        console.error('🔒 Permission denied - check Firestore security rules');
+        alert('Permission denied. Check Firestore security rules.');
+      }
+    },
+
+    complete: () => {
+      console.log('✅ Organization subscription completed');
     }
   });
 
   this.subscriptions.push(orgSub);
 }
 
+
+  // subscribeToOrganizations(): void {
+  //   // Only subscribe if auth state is resolved
+  //   if (!this.authStateResolved) {
+  //     console.log('⏳ Waiting for auth state to resolve...');
+  //     return;
+  //   }
+
+  //   this.isLoadingOrgs = true;
+  //   console.log('🔄 Starting organization subscription...');
+
+  //   const orgSub = this.organizationService.getUserOrganizations().subscribe({
+  //     next: (organizations) => {
+  //       console.log('✅ Organizations received:', organizations.length);
+  //       this.organizations = organizations;
+  //       this.isLoadingOrgs = false;
+
+  //       if (this.organizations.length > 0 && !this.selectedOrg) {
+  //         this.selectOrganization(this.organizations[0]);
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('❌ Error loading organizations:', error);
+  //       this.isLoadingOrgs = false;
+  //     }
+  //   });
+
+  //   this.subscriptions.push(orgSub);
+  // }
   async createOrganization(): Promise<void> {
     if (!this.newOrg.name.trim()) {
       alert('Organization name is required');

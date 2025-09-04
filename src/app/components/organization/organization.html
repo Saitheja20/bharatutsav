@@ -1,3 +1,11 @@
+<div *ngIf="isAuthLoading" class="container mt-4">
+  <div class="text-center">
+    <i class="fas fa-spinner fa-spin fa-3x text-primary mb-4"></i>
+    <h4>Loading...</h4>
+    <p>Checking authentication status...</p>
+  </div>
+</div>
+<div *ngIf="!isAuthLoading">
 <app-navigation></app-navigation>
 
 <!-- Loading Screen -->
@@ -465,4 +473,5 @@
     <h5>Select an Organization</h5>
     <p>Choose an organization from the list above to view its details and manage members and transactions.</p>
   </div>
+</div>
 </div>

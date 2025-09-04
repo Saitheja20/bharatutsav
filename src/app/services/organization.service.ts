@@ -234,30 +234,103 @@ export class OrganizationService {
   //   // Return real-time observable - this will auto-update when data changes
   //   return collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
   // }
+// getUserOrganizations(): Observable<Organization[]> {
+//   const userId = this.auth.currentUser?.uid;
+//   console.log('🔍 Querying organizations for user ID:', userId); // Debug log
+
+//   if (!userId) {
+//     console.warn('❌ No user ID found');
+//     return of([]);
+//   }
+
+//   const orgsQuery = query(
+//     collection(this.firestore, 'organizations'),
+//     where('members', 'array-contains', userId),
+//     orderBy('createdAt', 'desc')
+//   );
+
+//   const observable = collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
+
+//   // Debug: Log what data is received
+//   observable.subscribe(data => {
+//     console.log('📊 Organizations query result:', data);
+//     console.log('📊 Number of organizations found:', data.length);
+//   });
+
+//   return observable;
+// }
+// getUserOrganizations(): Observable<Organization[]> {
+//     const userId = this.auth.currentUser?.uid;
+//     console.log('🔍 Querying organizations for user ID:', userId);
+
+//     if (!userId) {
+//       console.warn('❌ No user ID found');
+//       return of([]);
+//     }
+
+//     try {
+//       const orgsQuery = query(
+//         collection(this.firestore, 'organizations'),
+//         where('members', 'array-contains', userId),
+//         orderBy('createdAt', 'desc')
+//       );
+
+//       const observable = collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
+
+//       // Debug subscription
+//       observable.subscribe({
+//         next: (data) => console.log('📊 Organizations found:', data.length),
+//         error: (err) => console.error('❌ Query error:', err)
+//       });
+
+//       return observable;
+//     } catch (error) {
+//       console.error('❌ Error creating query:', error);
+//       return of([]);
+//     }
+//   }
+
 getUserOrganizations(): Observable<Organization[]> {
   const userId = this.auth.currentUser?.uid;
-  console.log('🔍 Querying organizations for user ID:', userId); // Debug log
+  console.log('🔍 Service: Querying organizations for user ID:', userId);
 
   if (!userId) {
-    console.warn('❌ No user ID found');
+    console.warn('❌ Service: No user ID found');
     return of([]);
   }
 
-  const orgsQuery = query(
-    collection(this.firestore, 'organizations'),
-    where('members', 'array-contains', userId),
-    orderBy('createdAt', 'desc')
-  );
+  try {
+    const orgsQuery = query(
+      collection(this.firestore, 'organizations'),
+      where('members', 'array-contains', userId),
+      orderBy('createdAt', 'desc')
+    );
 
-  const observable = collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
+    console.log('📋 Service: Query created successfully');
 
-  // Debug: Log what data is received
-  observable.subscribe(data => {
-    console.log('📊 Organizations query result:', data);
-    console.log('📊 Number of organizations found:', data.length);
-  });
+    const observable = collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
 
-  return observable;
+    // ✅ Enhanced debugging
+    observable.subscribe({
+      next: (data) => {
+        console.log('📊 Service: Query returned', data.length, 'organizations');
+        console.log('📄 Service: Raw data:', data);
+      },
+      error: (err) => {
+        console.error('❌ Service: Query error:', err);
+        console.error('🔍 Service: Error details:', {
+          code: err.code,
+          message: err.message,
+          query: 'organizations where members array-contains ' + userId + ' orderBy createdAt desc'
+        });
+      }
+    });
+
+    return observable;
+  } catch (error) {
+    console.error('❌ Service: Error creating query:', error);
+    return of([]);
+  }
 }
 
   // Get user's role in organization

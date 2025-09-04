@@ -14,9 +14,11 @@ export class AuthGuard {
     return new Observable<boolean>(observer => {
       const unsubscribe = onAuthStateChanged(this.auth, (user) => {
         if (user) {
+          console.log('✅ Auth Guard: User authenticated');
           observer.next(true);
           observer.complete();
         } else {
+          console.log('❌ Auth Guard: User not authenticated, redirecting');
           this.router.navigate(['/login']);
           observer.next(false);
           observer.complete();

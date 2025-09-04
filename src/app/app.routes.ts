@@ -24,6 +24,7 @@ import { DashboardComponent } from './components/dashboard/dashboard';
 import { TransactionsComponent } from './components/transactions/transactions';
 import { MembersComponent } from './components/members/members';
 import { OrganizationsComponent } from './components/organization/organization'; // Fixed import path
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -31,7 +32,7 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent },
   { path: 'transactions', component: TransactionsComponent },
   { path: 'members', component: MembersComponent },
-  { path: 'organizations', component: OrganizationsComponent },
+  { path: 'organizations', component: OrganizationsComponent ,   canActivate: [AuthGuard] },// Add auth guard},
   { path: 'organizations/:orgId', component: OrganizationsComponent }, // Specific org view
   { path: '**', redirectTo: '/dashboard' } // ← MUST BE LAST - catches all unmatched routes
 ];
