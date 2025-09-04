@@ -4,12 +4,21 @@ export interface Organization {
   id: string;
   name: string;
   description?: string;
+  organizationCode: string; // ✅ NEW: Unique join code
   createdBy: string;
   createdByName: string;
   createdAt: Timestamp | FieldValue;
   updatedAt?: Timestamp | FieldValue;
-  members: string[]; // Array of user IDs
-  memberRoles: { [userId: string]: string }; // Map of user roles
+  members: string[];
+  memberRoles: { [userId: string]: string };
+  joinRequests?: { [userId: string]: JoinRequest }; // ✅ NEW
+}
+export interface JoinRequest {
+  status: 'pending';
+  requestedAt: Timestamp | FieldValue;
+  userEmail: string;
+  userDisplayName: string;
+  userId: string;
 }
 
 export interface OrganizationMember {

@@ -195,26 +195,214 @@ import { Organization, OrganizationMember, OrganizationTransaction } from '../in
 export class OrganizationService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
+// Generate unique organization code
+  private generateOrganizationCode(): string {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  }
 
   // Create organization - returns the document ID
-  async createOrganization(orgData: Partial<Organization>): Promise<string> {
+  // async createOrganization(orgData: Partial<Organization>): Promise<string> {
+  //   const userId = this.auth.currentUser?.uid;
+  //   if (!userId) throw new Error('Not authenticated');
+
+  //   const newOrg = {
+  //     ...orgData,
+  //     createdBy: userId,
+  //     createdByName: this.auth.currentUser?.displayName || this.auth.currentUser?.email || '',
+  //     createdAt: serverTimestamp(),
+  //     updatedAt: serverTimestamp(),
+  //     members: [userId], // Add creator as member
+  //     memberRoles: {
+  //       [userId]: 'admin' // Creator is admin
+  //     }
+  //   };
+
+  //   const docRef = await addDoc(collection(this.firestore, 'organizations'), newOrg);
+  //   return docRef.id;
+  // }
+
+  // Updated createOrganization method
+  async createOrganization(orgData: Partial<Organization>): Promise<{id: string, code: string}> {
     const userId = this.auth.currentUser?.uid;
     if (!userId) throw new Error('Not authenticated');
 
+    const organizationCode = this.generateOrganizationCode();
+
     const newOrg = {
       ...orgData,
+      organizationCode: organizationCode, // ✅ Unique join code
       createdBy: userId,
       createdByName: this.auth.currentUser?.displayName || this.auth.currentUser?.email || '',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      members: [userId], // Add creator as member
+      members: [userId],
       memberRoles: {
-        [userId]: 'admin' // Creator is admin
-      }
+        [userId]: 'admin'
+      },
+      joinRequests: {} // ✅ Track pending join requests
     };
 
     const docRef = await addDoc(collection(this.firestore, 'organizations'), newOrg);
-    return docRef.id;
+    return { id: docRef.id, code: organizationCode };
+  }
+
+  // ✅ NEW: Request to join organization
+  async requestToJoinOrganization(organizationCode: string): Promise<string> {
+    const userId = this.auth.currentUser?.uid;
+    const userEmail = this.auth.currentUser?.email;
+    const userDisplayName = this.auth.currentUser?.displayName;
+
+    if (!userId || !userEmail) throw new Error('Not authenticated');
+
+    // Find organization by code
+    const orgQuery = query(
+      collection(this.firestore, 'organizations'),
+      where('organizationCode', '==', organizationCode.toUpperCase())
+    );
+
+    const orgSnapshot = await getDocs(orgQuery);
+
+    if (orgSnapshot.empty) {
+      throw new Error('Invalid organization code');
+    }
+
+    const orgDoc = orgSnapshot.docs[0];
+    const orgData = orgDoc.data();
+
+    // Check if already a member
+    if (orgData['members'] && orgData['members'].includes(userId)) {
+      throw new Error('You are already a member of this organization');
+    }
+
+    // Check if request already exists
+    const joinRequests = orgData['joinRequests'] || {};
+    if (joinRequests[userId]) {
+      throw new Error('Your join request is already pending');
+    }
+
+    // Add join request
+    const newJoinRequests = {
+      ...joinRequests,
+      [userId]: {
+        status: 'pending',
+        requestedAt: serverTimestamp(),
+        userEmail: userEmail,
+        userDisplayName: userDisplayName || userEmail,
+        userId: userId
+      }
+    };
+
+    await updateDoc(orgDoc.ref, {
+      joinRequests: newJoinRequests
+    });
+
+    return 'Join request sent successfully! Wait for admin approval.';
+  }
+
+  // ✅ NEW: Get pending join requests (admin only)
+  async getPendingJoinRequests(orgId: string): Promise<any[]> {
+    const orgDoc = await getDoc(doc(this.firestore, 'organizations', orgId));
+
+    if (!orgDoc.exists()) {
+      throw new Error('Organization not found');
+    }
+
+    const orgData = orgDoc.data();
+    const joinRequests = orgData['joinRequests'] || {};
+
+    // Convert object to array
+    return Object.entries(joinRequests).map(([userId, request]) => ({
+      userId,
+      ...request as any
+    }));
+  }
+
+  // ✅ NEW: Approve join request (admin only)
+  async approveJoinRequest(orgId: string, userId: string): Promise<string> {
+    const currentUserId = this.auth.currentUser?.uid;
+    if (!currentUserId) throw new Error('Not authenticated');
+
+    const orgRef = doc(this.firestore, 'organizations', orgId);
+    const orgDoc = await getDoc(orgRef);
+
+    if (!orgDoc.exists()) {
+      throw new Error('Organization not found');
+    }
+
+    const orgData = orgDoc.data();
+
+    // Check if current user is admin
+    const userRole = orgData['memberRoles']?.[currentUserId];
+    if (userRole !== 'admin') {
+      throw new Error('Only admins can approve join requests');
+    }
+
+    const joinRequests = orgData['joinRequests'] || {};
+    const request = joinRequests[userId];
+
+    if (!request) {
+      throw new Error('Join request not found');
+    }
+
+    // Add user to members
+    const currentMembers = orgData['members'] || [];
+    const updatedMembers = [...currentMembers, userId];
+
+    // Add user role
+    const currentRoles = orgData['memberRoles'] || {};
+    const updatedRoles = {
+      ...currentRoles,
+      [userId]: 'viewer' // Default role for new members
+    };
+
+    // Remove from join requests
+    const updatedJoinRequests = { ...joinRequests };
+    delete updatedJoinRequests[userId];
+
+    await updateDoc(orgRef, {
+      members: updatedMembers,
+      memberRoles: updatedRoles,
+      joinRequests: updatedJoinRequests
+    });
+
+    return 'User approved and added to organization!';
+  }
+
+  // ✅ NEW: Reject join request (admin only)
+  async rejectJoinRequest(orgId: string, userId: string, reason?: string): Promise<string> {
+    const currentUserId = this.auth.currentUser?.uid;
+    if (!currentUserId) throw new Error('Not authenticated');
+
+    const orgRef = doc(this.firestore, 'organizations', orgId);
+    const orgDoc = await getDoc(orgRef);
+
+    if (!orgDoc.exists()) {
+      throw new Error('Organization not found');
+    }
+
+    const orgData = orgDoc.data();
+
+    // Check if current user is admin
+    const userRole = orgData['memberRoles']?.[currentUserId];
+    if (userRole !== 'admin') {
+      throw new Error('Only admins can reject join requests');
+    }
+
+    const joinRequests = orgData['joinRequests'] || {};
+
+    if (!joinRequests[userId]) {
+      throw new Error('Join request not found');
+    }
+
+    // Remove from join requests
+    const updatedJoinRequests = { ...joinRequests };
+    delete updatedJoinRequests[userId];
+
+    await updateDoc(orgRef, {
+      joinRequests: updatedJoinRequests
+    });
+
+    return 'Join request rejected';
   }
 
   // Get user organizations with REAL-TIME updates

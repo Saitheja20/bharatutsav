@@ -42,7 +42,9 @@ export class OrganizationsComponent implements OnInit {
   selectedOrgMembers: OrganizationMember[] = [];
   selectedOrgTransactions: OrganizationTransaction[] = []; // Keep as array
   userRole: string = 'viewer';
-
+  // ✅ NEW: Join requests
+  pendingJoinRequests: any[] = [];
+  isLoadingJoinRequests = false;
   // Loading states
   isAuthLoading = true;
   isLoadingOrgs = true;
@@ -51,6 +53,13 @@ export class OrganizationsComponent implements OnInit {
   isLoadingTransactions = false;
   isAddingMember = false;
   isAddingTransaction = false;
+
+
+  joinOrgForm = {
+    organizationCode: ''
+  };
+
+
 
   // Forms
   newOrg = {
@@ -290,14 +299,23 @@ subscribeToOrganizations(): void {
     }
   }
 
-  async selectOrganization(org: Organization): Promise<void> {
-    this.selectedOrg = org;
-    this.userRole = await this.organizationService.getUserRoleInOrganization(org.id) || 'viewer';
-    await Promise.all([
-      this.loadMembers(),
-      this.loadTransactions()
-    ]);
+  // async selectOrganization(org: Organization): Promise<void> {
+  //   this.selectedOrg = org;
+  //   this.userRole = await this.organizationService.getUserRoleInOrganization(org.id) || 'viewer';
+  //   await Promise.all([
+  //     this.loadMembers(),
+  //     this.loadTransactions()
+  //   ]);
+  // }
+// Add this method to your component
+async copyToClipboard(text: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('Organization code copied to clipboard!');
+  } catch (err) {
+    console.error('Failed to copy:', err);
   }
+}
 
   async loadMembers(): Promise<void> {
     if (!this.selectedOrg) return;
@@ -526,4 +544,189 @@ subscribeToOrganizations(): void {
       }
     }
   }
+
+    // ✅ NEW: Join organization form
+
+  // ✅ NEW: Join organization method
+  // async joinOrganization(): Promise<void> {
+  //   if (!this.joinOrgForm.organizationCode.trim()) {
+  //     alert('Please enter organization code');
+  //     return;
+  //   }
+
+  //   try {
+  //     const message = await this.organizationService.requestToJoinOrganization(
+  //       this.joinOrgForm.organizationCode
+  //     );
+
+  //     this.joinOrgForm.organizationCode = '';
+  //     alert(message);
+  //   } catch (error: any) {
+  //     console.error('Error joining organization:', error);
+  //     alert(error.message || 'Failed to join organization');
+  //   }
+  // }
+
+  // // ✅ NEW: Load pending join requests (for admins)
+  // async loadPendingJoinRequests(): Promise<void> {
+  //   if (!this.selectedOrg || this.userRole !== 'admin') return;
+
+  //   this.isLoadingJoinRequests = true;
+  //   try {
+  //     this.pendingJoinRequests = await this.organizationService.getPendingJoinRequests(
+  //       this.selectedOrg.id
+  //     );
+  //   } catch (error) {
+  //     console.error('Error loading join requests:', error);
+  //   } finally {
+  //     this.isLoadingJoinRequests = false;
+  //   }
+  // }
+
+  // // ✅ NEW: Approve join request
+  // async approveJoinRequest(userId: string): Promise<void> {
+  //   if (!this.selectedOrg) return;
+
+  //   try {
+  //     const message = await this.organizationService.approveJoinRequest(
+  //       this.selectedOrg.id,
+  //       userId
+  //     );
+
+  //     alert(message);
+  //     await this.loadPendingJoinRequests();
+  //     await this.loadMembers(); // Refresh members list
+  //   } catch (error: any) {
+  //     console.error('Error approving request:', error);
+  //     alert(error.message || 'Failed to approve request');
+  //   }
+  // }
+
+  // // ✅ NEW: Reject join request
+  // async rejectJoinRequest(userId: string): Promise<void> {
+  //   if (!this.selectedOrg) return;
+
+  //   if (confirm('Are you sure you want to reject this join request?')) {
+  //     try {
+  //       const message = await this.organizationService.rejectJoinRequest(
+  //         this.selectedOrg.id,
+  //         userId
+  //       );
+
+  //       alert(message);
+  //       await this.loadPendingJoinRequests();
+  //     } catch (error: any) {
+  //       console.error('Error rejecting request:', error);
+  //       alert(error.message || 'Failed to reject request');
+  //     }
+  //   }
+  // }
+
+  // // ✅ UPDATE: Load join requests when selecting organization
+  // async selectOrganization(org: Organization): Promise<void> {
+  //   this.selectedOrg = org;
+  //   this.userRole = await this.organizationService.getUserRoleInOrganization(org.id) || 'viewer';
+  //   await Promise.all([
+  //     this.loadMembers(),
+  //     this.loadTransactions(),
+  //     this.loadPendingJoinRequests() // ✅ NEW
+  //   ]);
+  // }
+
+
+// ✅ ADD these methods to your OrganizationsComponent
+
+// Track function for *ngFor performance
+trackByUserId(index: number, request: any): string {
+  return request?.userId || index;
+}
+
+// ✅ ADD: Join organization method
+async joinOrganization(): Promise<void> {
+  if (!this.joinOrgForm.organizationCode.trim()) {
+    alert('Please enter organization code');
+    return;
+  }
+
+  try {
+    const message = await this.organizationService.requestToJoinOrganization(
+      this.joinOrgForm.organizationCode
+    );
+
+    this.joinOrgForm.organizationCode = '';
+    alert(message);
+  } catch (error: any) {
+    console.error('Error joining organization:', error);
+    alert(error.message || 'Failed to join organization');
+  }
+}
+
+// ✅ ADD: Load pending join requests
+async loadPendingJoinRequests(): Promise<void> {
+  if (!this.selectedOrg || this.userRole !== 'admin') return;
+
+  this.isLoadingJoinRequests = true;
+  try {
+    this.pendingJoinRequests = await this.organizationService.getPendingJoinRequests(
+      this.selectedOrg.id
+    );
+  } catch (error) {
+    console.error('Error loading join requests:', error);
+    this.pendingJoinRequests = []; // Reset to empty array on error
+  } finally {
+    this.isLoadingJoinRequests = false;
+  }
+}
+
+// ✅ ADD: Approve join request
+async approveJoinRequest(userId: string): Promise<void> {
+  if (!this.selectedOrg || !userId) return;
+
+  try {
+    const message = await this.organizationService.approveJoinRequest(
+      this.selectedOrg.id,
+      userId
+    );
+
+    alert(message);
+    await this.loadPendingJoinRequests();
+    await this.loadMembers(); // Refresh members list
+  } catch (error: any) {
+    console.error('Error approving request:', error);
+    alert(error.message || 'Failed to approve request');
+  }
+}
+
+// ✅ ADD: Reject join request
+async rejectJoinRequest(userId: string): Promise<void> {
+  if (!this.selectedOrg || !userId) return;
+
+  if (confirm('Are you sure you want to reject this join request?')) {
+    try {
+      const message = await this.organizationService.rejectJoinRequest(
+        this.selectedOrg.id,
+        userId
+      );
+
+      alert(message);
+      await this.loadPendingJoinRequests();
+    } catch (error: any) {
+      console.error('Error rejecting request:', error);
+      alert(error.message || 'Failed to reject request');
+    }
+  }
+}
+
+// ✅ UPDATE: Load join requests when selecting organization
+async selectOrganization(org: Organization): Promise<void> {
+  this.selectedOrg = org;
+  this.userRole = await this.organizationService.getUserRoleInOrganization(org.id) || 'viewer';
+  await Promise.all([
+    this.loadMembers(),
+    this.loadTransactions(),
+    this.loadPendingJoinRequests() // ✅ ADD THIS
+  ]);
+}
+
+
 }

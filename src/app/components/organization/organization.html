@@ -92,7 +92,42 @@
         </div>
       </div>
     </div>
+
+    <!-- Add this section after the "Create Organization" card -->
+<div class="col-md-4">
+  <div class="card">
+    <div class="card-header bg-info text-white">
+      <h6 class="mb-0"><i class="fas fa-users me-2"></i>Join Organization</h6>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="joinOrganization()" #joinForm="ngForm">
+        <div class="mb-3">
+          <label for="orgCode" class="form-label">Organization Code *</label>
+          <input type="text" class="form-control text-uppercase" id="orgCode"
+                 [(ngModel)]="joinOrgForm.organizationCode" name="orgCode"
+                 required placeholder="Enter 6-digit code" maxlength="6">
+          <div class="form-text">Ask an admin for the organization code</div>
+        </div>
+        <button type="submit" class="btn btn-info w-100"
+                [disabled]="!joinForm.valid">
+          <i class="fas fa-paper-plane me-2"></i>Request to Join
+        </button>
+      </form>
+    </div>
   </div>
+</div>
+
+  </div>
+<!-- Add this after organization selection -->
+<div *ngIf="selectedOrg && userRole === 'admin'" class="alert alert-info">
+  <i class="fas fa-key me-2"></i>
+  <strong>Share this code:</strong>
+  <code class="ms-2">{{ selectedOrg.organizationCode }}</code>
+  <button class="btn btn-outline-primary btn-sm ms-2"
+          (click)="copyToClipboard(selectedOrg.organizationCode)">
+    <i class="fas fa-copy me-1"></i>Copy
+  </button>
+</div>
 
   <!-- Selected Organization Details -->
   <div *ngIf="selectedOrg" class="row">
@@ -153,7 +188,7 @@
 
     <!-- Management Tabs -->
     <div class="col-12">
-      <ul class="nav nav-tabs" id="orgTabs" role="tablist">
+      <!-- <ul class="nav nav-tabs" id="orgTabs" role="tablist">
         <li class="nav-item" role="presentation">
           <button class="nav-link active" id="members-tab" data-bs-toggle="tab"
                   data-bs-target="#members" type="button" role="tab" aria-controls="members" aria-selected="true">
@@ -166,7 +201,34 @@
             <i class="fas fa-receipt me-2"></i>Transactions ({{ selectedOrgTransactions.length }})
           </button>
         </li>
-      </ul>
+      </ul> -->
+
+
+      <ul class="nav nav-tabs" id="orgTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="members-tab" data-bs-toggle="tab"
+            data-bs-target="#members" type="button" role="tab">
+      <i class="fas fa-users me-2"></i>Members ({{ selectedOrgMembers.length }})
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="transactions-tab" data-bs-toggle="tab"
+            data-bs-target="#transactions" type="button" role="tab">
+      <i class="fas fa-receipt me-2"></i>Transactions ({{ selectedOrgTransactions.length }})
+    </button>
+  </li>
+  <!-- ✅ ADD THIS NEW TAB -->
+  <li class="nav-item" role="presentation" *ngIf="userRole === 'admin'">
+  <button class="nav-link" id="requests-tab" data-bs-toggle="tab"
+          data-bs-target="#requests" type="button" role="tab">
+    <i class="fas fa-user-clock me-2"></i>Join Requests
+    <span class="badge bg-warning text-dark ms-1" *ngIf="(pendingJoinRequests?.length ?? 0) > 0">
+      {{ pendingJoinRequests?.length }}
+    </span>
+  </button>
+</li>
+</ul>
+
 
       <div class="tab-content" id="orgTabsContent">
         <!-- Members Tab -->
@@ -463,6 +525,62 @@
             </div>
           </div>
         </div>
+         <!-- ✅ ADD THIS NEW TAB CONTENT -->
+            <!-- ✅ UPDATED TAB CONTENT with safe navigation -->
+<div class="tab-pane fade" id="requests" role="tabpanel" aria-labelledby="requests-tab">
+  <div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h6 class="mb-0"><i class="fas fa-user-clock me-2"></i>Pending Join Requests</h6>
+      <button class="btn btn-sm btn-outline-primary" (click)="loadPendingJoinRequests()">
+        <i class="fas fa-refresh me-1"></i>Refresh
+      </button>
+    </div>
+
+    <div class="card-body">
+      <!-- Loading state -->
+      <div *ngIf="isLoadingJoinRequests" class="text-center">
+        <i class="fas fa-spinner fa-spin"></i> Loading requests...
+      </div>
+
+      <!-- No requests - using safe check -->
+      <div *ngIf="!isLoadingJoinRequests && (pendingJoinRequests?.length ?? 0) === 0"
+           class="text-center text-muted">
+        <i class="fas fa-inbox fa-2x mb-3"></i>
+        <p>No pending join requests</p>
+      </div>
+
+      <!-- Requests list - using safe navigation -->
+      <div *ngIf="!isLoadingJoinRequests && (pendingJoinRequests?.length ?? 0) > 0">
+        <div class="list-group">
+          <div class="list-group-item" *ngFor="let request of pendingJoinRequests; trackBy: trackByUserId">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-1">{{ request?.userDisplayName || 'Unknown User' }}</h6>
+                <p class="mb-1 text-muted">{{ request?.userEmail || 'No email' }}</p>
+                <small class="text-muted">
+                  Requested: {{ toDate(request?.requestedAt) | date:'medium' }}
+                </small>
+              </div>
+              <div class="btn-group" role="group">
+                <button class="btn btn-success btn-sm"
+                        [disabled]="!request?.userId"
+                        (click)="approveJoinRequest(request?.userId)">
+                  <i class="fas fa-check me-1"></i>Approve
+                </button>
+                <button class="btn btn-danger btn-sm"
+                        [disabled]="!request?.userId"
+                        (click)="rejectJoinRequest(request?.userId)">
+                  <i class="fas fa-times me-1"></i>Reject
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
       </div>
     </div>
   </div>
