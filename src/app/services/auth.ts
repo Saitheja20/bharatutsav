@@ -104,6 +104,12 @@ export class AuthService {
   }
 }
 
+  // Add this method here:
+  async updateUserRole(uid: string, role: string): Promise<void> {
+    const userDocRef = doc(this.firestore, 'users', uid);
+    await setDoc(userDocRef, { role }, { merge: true });
+  }
+
   private handleAuthError(error: unknown): void {
     if (error instanceof Error) {
       const firebaseError = error as any;
@@ -170,10 +176,12 @@ private async initializeAuth() {
             await setDoc(userDocRef, {
               email: user.email,
               displayName: user.displayName,
-              role: 'viewer',
+              role: 'admin',
+              organizations: [],   // Add organizations if applicable
+              invitedBy: null,      // Add inviter's UID if available
               createdAt: new Date()
             });
-            this.userRoleSource.next('viewer');
+            this.userRoleSource.next('admin');
             console.log('New user document created');
           }
 

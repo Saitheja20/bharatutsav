@@ -80,8 +80,9 @@
       </div>
       <div class="card-body">
         <ng-container *ngIf="isBrowser">
-          <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
-        </ng-container>
+  <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
+  pie chart
+</ng-container>
       </div>
     </div>
   </div>
@@ -92,9 +93,10 @@
         <h5 class="card-title mb-0">Daily Summary</h5>
       </div>
       <div class="card-body">
-        <ng-container *ngIf="isBrowser">
-          <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
-        </ng-container>
+       <ng-container *ngIf="isBrowser">
+  <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
+  bar chart
+</ng-container>
       </div>
     </div>
   </div>
@@ -132,7 +134,7 @@
                         {{ transaction.note || 'No description' }}
                     </div>
                     <div class="col-md-3 text-end text-muted">
-                        <small>{{ transaction.createdAt.toDate() | date:'shortDate' }}</small>
+                        <small>{{ toDate(transaction.createdAt) | date:'shortDate' }}</small>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,357 @@
+
+
+<div *ngIf="isAuthLoading" class="container mt-4">
+  <div class="text-center">
+    <i class="fas fa-spinner fa-spin fa-2x"></i>
+    <p class="mt-3">Checking authentication...</p>
+  </div>
+</div>
+<!-- Wrap existing content -->
+<div *ngIf="!isAuthLoading">
+  <!-- Your existing template content -->
+<app-navigation></app-navigation>
+<div class="container mt-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2><i class="fas fa-building me-2"></i>Organizations</h2>
+    </div>
+  </div>
+
+  <!-- Organization Selection & Creation -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">My Organizations</h5>
+        </div>
+        <div class="card-body">
+          <div *ngIf="isLoadingOrgs" class="text-center">
+            <i class="fas fa-spinner fa-spin"></i> Loading organizations...
+          </div>
+
+          <div *ngIf="!isLoadingOrgs && organizations.length === 0" class="text-center text-muted">
+            <i class="fas fa-building fa-2x mb-3"></i>
+            <p>No organizations found. Create your first organization!</p>
+          </div>
+
+          <div *ngIf="!isLoadingOrgs && organizations.length > 0" class="row">
+            <div class="col-md-6 mb-3" *ngFor="let org of organizations">
+              <div class="card" [class.border-primary]="selectedOrg?.id === org.id"
+                   (click)="selectOrganization(org)" style="cursor: pointer;">
+                <div class="card-body">
+                  <h6 class="card-title">{{ org.name }}</h6>
+                  <p class="card-text small text-muted">{{ org.description || 'No description' }}</p>
+                  <small class="text-muted">
+                    Created: {{ toDate(org.createdAt) | date:'shortDate' }}
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Create Organization</h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="createOrganization()" #orgForm="ngForm">
+            <div class="mb-3">
+              <label class="form-label">Organization Name *</label>
+              <input type="text" class="form-control" [(ngModel)]="newOrg.name"
+                     name="orgName" required placeholder="Enter organization name">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" [(ngModel)]="newOrg.description"
+                        name="orgDescription" rows="3" placeholder="Organization description"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" [disabled]="isCreatingOrg">
+              <i class="fas" [ngClass]="{'fa-spinner fa-spin': isCreatingOrg, 'fa-plus': !isCreatingOrg}"></i>
+              {{ isCreatingOrg ? 'Creating...' : 'Create Organization' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selected Organization Details -->
+  <div *ngIf="selectedOrg" class="row">
+    <!-- Financial Summary -->
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-pie me-2"></i>{{ selectedOrg.name }} - Financial Overview
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                  <h6>Total Credits</h6>
+                  <h3>₹{{ totalCredits | number:'1.2-2' }}</h3>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                  <h6>Total Debits</h6>
+                  <h3>₹{{ totalDebits | number:'1.2-2' }}</h3>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                  <h6>Balance</h6>
+                  <h3>₹{{ currentBalance | number:'1.2-2' }}</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="row">
+            <div class="col-md-6">
+              <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
+            </div>
+            <div class="col-md-6">
+              <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs for Members and Transactions -->
+    <div class="col-12">
+      <ul class="nav nav-tabs" id="orgTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="members-tab" data-bs-toggle="tab"
+                  data-bs-target="#members" type="button" role="tab">
+            <i class="fas fa-users me-2"></i>Members ({{ selectedOrgMembers.length }})
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="transactions-tab" data-bs-toggle="tab"
+                  data-bs-target="#transactions" type="button" role="tab">
+            <i class="fas fa-receipt me-2"></i>Transactions ({{ selectedOrgTransactions.length }})
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="orgTabsContent">
+        <!-- Members Tab -->
+        <div class="tab-pane fade show active" id="members" role="tabpanel">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">Organization Members</h6>
+              <button *ngIf="userRole === 'admin'" class="btn btn-primary btn-sm"
+                      data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                <i class="fas fa-user-plus me-1"></i>Add Member
+              </button>
+            </div>
+            <div class="card-body">
+              <div *ngIf="isLoadingMembers" class="text-center">
+                <i class="fas fa-spinner fa-spin"></i> Loading members...
+              </div>
+
+              <div *ngIf="!isLoadingMembers" class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Member</th>
+                      <th>Role</th>
+                      <th>Joined</th>
+                      <th *ngIf="userRole === 'admin'">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let member of selectedOrgMembers">
+                      <td>
+                        <div>
+                          <strong>{{ member.displayName }}</strong>
+                          <br><small class="text-muted">{{ member.email }}</small>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge" [ngClass]="{
+                          'bg-danger': member.role === 'admin',
+                          'bg-warning': member.role === 'editor',
+                          'bg-success': member.role === 'viewer'
+                        }">
+                          {{ member.role | titlecase }}
+                        </span>
+                      </td>
+                      <td>
+                        <small>{{ toDate(member.joinedAt) | date:'shortDate' }}</small>
+                      </td>
+                      <td *ngIf="userRole === 'admin'">
+                        <button class="btn btn-sm btn-outline-danger"
+                                (click)="removeMember(member)"
+                                *ngIf="member.userId !== currentUser?.uid">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transactions Tab -->
+        <div class="tab-pane fade" id="transactions" role="tabpanel">
+          <div class="row">
+            <div class="col-md-4 mb-3" *ngIf="userRole !== 'viewer'">
+              <div class="card">
+                <div class="card-header">
+                  <h6 class="mb-0">Add Transaction</h6>
+                </div>
+                <div class="card-body">
+                  <form (ngSubmit)="addTransaction()" #transactionForm="ngForm">
+                    <div class="mb-3">
+                      <label class="form-label">Type</label>
+                      <select class="form-select" [(ngModel)]="newTransaction.type" name="type">
+                        <option value="credit">Credit (Money In)</option>
+                        <option value="debit">Debit (Money Out)</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Amount (₹)</label>
+                      <input type="number" class="form-control" [(ngModel)]="newTransaction.amount"
+                             name="amount" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Description</label>
+                      <textarea class="form-control" [(ngModel)]="newTransaction.note"
+                                name="note" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" [disabled]="isAddingTransaction">
+                      <i class="fas" [ngClass]="{'fa-spinner fa-spin': isAddingTransaction, 'fa-plus': !isAddingTransaction}"></i>
+                      {{ isAddingTransaction ? 'Adding...' : 'Add Transaction' }}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div [class]="userRole === 'viewer' ? 'col-12' : 'col-md-8'">
+              <div class="card">
+                <div class="card-header">
+                  <h6 class="mb-0">Recent Transactions</h6>
+                </div>
+                <div class="card-body">
+                  <div *ngIf="isLoadingTransactions" class="text-center">
+                    <i class="fas fa-spinner fa-spin"></i> Loading transactions...
+                  </div>
+
+                  <div *ngIf="!isLoadingTransactions && selectedOrgTransactions.length === 0"
+                       class="text-center text-muted">
+                    <i class="fas fa-receipt fa-2x mb-3"></i>
+                    <p>No transactions found</p>
+                  </div>
+
+                  <div *ngIf="!isLoadingTransactions && selectedOrgTransactions.length > 0">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th>Created By</th>
+                            <th *ngIf="userRole !== 'viewer'">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let transaction of selectedOrgTransactions">
+                            <td>
+                              <span class="badge" [ngClass]="{
+                                'bg-success': transaction.type === 'credit',
+                                'bg-danger': transaction.type === 'debit'
+                              }">
+                                {{ transaction.type | titlecase }}
+                              </span>
+                            </td>
+                            <td><strong>₹{{ transaction.amount | number:'1.2-2' }}</strong></td>
+                            <td>{{ transaction.note }}</td>
+                            <td>
+                              <small>{{ toDate(transaction.createdAt) | date:'shortDate' }}</small>
+                            </td>
+                            <td>
+                              <small>{{ transaction.createdByName }}</small>
+                            </td>
+                            <td *ngIf="userRole !== 'viewer'">
+                              <button class="btn btn-sm btn-outline-danger"
+                                      (click)="deleteTransaction(transaction)">
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal fade" id="addMemberModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Member</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="addMember()" #memberForm="ngForm">
+          <div class="mb-3">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-control" [(ngModel)]="newMember.email"
+                   name="email" required placeholder="member@example.com">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Display Name</label>
+            <input type="text" class="form-control" [(ngModel)]="newMember.displayName"
+                   name="displayName" placeholder="Member Name">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Role</label>
+            <select class="form-select" [(ngModel)]="newMember.role" name="role">
+              <option value="viewer">Viewer - Can only view</option>
+              <option value="editor">Editor - Can add/edit transactions</option>
+              <option value="admin">Admin - Full access</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" [disabled]="isAddingMember"
+                (click)="addMember()" data-bs-dismiss="modal">
+          <i class="fas" [ngClass]="{'fa-spinner fa-spin': isAddingMember, 'fa-user-plus': !isAddingMember}"></i>
+          Add Member
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
