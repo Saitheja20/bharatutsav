@@ -107,29 +107,56 @@ export class OrganizationsComponent implements OnInit {
   }
 
   // FIXED: Subscribe to real-time organization updates
-  subscribeToOrganizations(): void {
-    this.isLoadingOrgs = true;
+  // subscribeToOrganizations(): void {
+  //   this.isLoadingOrgs = true;
 
-    // Subscribe to real-time updates and convert Observable to array
-    const orgSub = this.organizationService.getUserOrganizations().subscribe({
-      next: (organizations) => {
-        console.log('Organizations received:', organizations);
-        this.organizations = organizations; // Now this works - Observable data goes to array property
-        this.isLoadingOrgs = false;
+  //   // Subscribe to real-time updates and convert Observable to array
+  //   const orgSub = this.organizationService.getUserOrganizations().subscribe({
+  //     next: (organizations) => {
+  //       console.log('Organizations received:', organizations);
+  //       this.organizations = organizations; // Now this works - Observable data goes to array property
+  //       this.isLoadingOrgs = false;
 
-        // Auto-select first org if none selected
-        if (this.organizations.length > 0 && !this.selectedOrg) {
-          this.selectOrganization(this.organizations[0]);
-        }
-      },
-      error: (error) => {
-        console.error('Error loading organizations:', error);
-        this.isLoadingOrgs = false;
+  //       // Auto-select first org if none selected
+  //       if (this.organizations.length > 0 && !this.selectedOrg) {
+  //         this.selectOrganization(this.organizations[0]);
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('Error loading organizations:', error);
+  //       this.isLoadingOrgs = false;
+  //     }
+  //   });
+
+  //   this.subscriptions.push(orgSub);
+  // }
+subscribeToOrganizations(): void {
+  this.isLoadingOrgs = true;
+  console.log('🔄 Starting organization subscription...');
+
+  const orgSub = this.organizationService.getUserOrganizations().subscribe({
+    next: (organizations) => {
+      console.log('✅ Organizations received in component:', organizations);
+      console.log('👤 Current user ID:', this.currentUser?.uid);
+
+      this.organizations = organizations;
+      this.isLoadingOrgs = false;
+
+      if (this.organizations.length > 0 && !this.selectedOrg) {
+        console.log('🎯 Auto-selecting first organization:', this.organizations[0]);
+        this.selectOrganization(this.organizations[0]);
+      } else if (this.organizations.length === 0) {
+        console.warn('⚠️ No organizations found - check Firestore data');
       }
-    });
+    },
+    error: (error) => {
+      console.error('❌ Error loading organizations:', error);
+      this.isLoadingOrgs = false;
+    }
+  });
 
-    this.subscriptions.push(orgSub);
-  }
+  this.subscriptions.push(orgSub);
+}
 
   async createOrganization(): Promise<void> {
     if (!this.newOrg.name.trim()) {

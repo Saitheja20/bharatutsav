@@ -170,17 +170,17 @@
 
 
 import { Injectable, inject } from '@angular/core';
-import { 
-  Firestore, 
-  collection, 
-  doc, 
-  addDoc, 
-  getDocs, 
+import {
+  Firestore,
+  collection,
+  doc,
+  addDoc,
+  getDocs,
   getDoc,
   updateDoc,
   deleteDoc,
-  query, 
-  where, 
+  query,
+  where,
   orderBy,
   serverTimestamp,
   collectionData
@@ -218,22 +218,47 @@ export class OrganizationService {
   }
 
   // Get user organizations with REAL-TIME updates
-  getUserOrganizations(): Observable<Organization[]> {
-    const userId = this.auth.currentUser?.uid;
-    if (!userId) {
-      return of([]); // Return empty array if no user
-    }
+  // getUserOrganizations(): Observable<Organization[]> {
+  //   const userId = this.auth.currentUser?.uid;
+  //   if (!userId) {
+  //     return of([]); // Return empty array if no user
+  //   }
 
-    // Query organizations where user is in members array
-    const orgsQuery = query(
-      collection(this.firestore, 'organizations'),
-      where('members', 'array-contains', userId),
-      orderBy('createdAt', 'desc')
-    );
+  //   // Query organizations where user is in members array
+  //   const orgsQuery = query(
+  //     collection(this.firestore, 'organizations'),
+  //     where('members', 'array-contains', userId),
+  //     orderBy('createdAt', 'desc')
+  //   );
 
-    // Return real-time observable - this will auto-update when data changes
-    return collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
+  //   // Return real-time observable - this will auto-update when data changes
+  //   return collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
+  // }
+getUserOrganizations(): Observable<Organization[]> {
+  const userId = this.auth.currentUser?.uid;
+  console.log('🔍 Querying organizations for user ID:', userId); // Debug log
+
+  if (!userId) {
+    console.warn('❌ No user ID found');
+    return of([]);
   }
+
+  const orgsQuery = query(
+    collection(this.firestore, 'organizations'),
+    where('members', 'array-contains', userId),
+    orderBy('createdAt', 'desc')
+  );
+
+  const observable = collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
+
+  // Debug: Log what data is received
+  observable.subscribe(data => {
+    console.log('📊 Organizations query result:', data);
+    console.log('📊 Number of organizations found:', data.length);
+  });
+
+  return observable;
+}
 
   // Get user's role in organization
   async getUserRoleInOrganization(orgId: string): Promise<string | null> {
@@ -260,7 +285,7 @@ export class OrganizationService {
         const data = orgDoc.data();
         const members = data['members'] || [];
         const memberRoles = data['memberRoles'] || {};
-        
+
         // Convert to OrganizationMember format
         return members.map((userId: string) => ({
           id: userId,
@@ -285,15 +310,15 @@ export class OrganizationService {
     try {
       const orgRef = doc(this.firestore, 'organizations', orgId);
       const orgDoc = await getDoc(orgRef);
-      
+
       if (orgDoc.exists()) {
         const data = orgDoc.data();
         const currentMembers = data['members'] || [];
         const currentRoles = data['memberRoles'] || {};
-        
+
         // Use email as member ID for now (you should resolve to actual Firebase UID)
         const memberId = memberData.email.replace(/[^a-zA-Z0-9]/g, '_');
-        
+
         await updateDoc(orgRef, {
           members: [...currentMembers, memberId],
           memberRoles: {
@@ -313,16 +338,16 @@ export class OrganizationService {
     try {
       const orgRef = doc(this.firestore, 'organizations', orgId);
       const orgDoc = await getDoc(orgRef);
-      
+
       if (orgDoc.exists()) {
         const data = orgDoc.data();
         const currentMembers = data['members'] || [];
         const currentRoles = data['memberRoles'] || {};
-        
+
         // Remove from members array and roles
         const updatedMembers = currentMembers.filter((id: string) => id !== memberId);
         delete currentRoles[memberId];
-        
+
         await updateDoc(orgRef, {
           members: updatedMembers,
           memberRoles: currentRoles
@@ -354,7 +379,7 @@ export class OrganizationService {
       collection(this.firestore, `organizations/${orgId}/transactions`),
       orderBy('createdAt', 'desc')
     );
-    
+
     return collectionData(transactionsQuery, { idField: 'id' }) as Observable<OrganizationTransaction[]>;
   }
 
