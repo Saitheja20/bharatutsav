@@ -478,11 +478,55 @@ export class OrganizationService {
 //     }
 //   }
 
-getUserOrganizations(): Observable<Organization[]> {
-  const userId = this.auth.currentUser?.uid;
-  console.log('🔍 Service: Querying organizations for user ID:', userId);
+// getUserOrganizations(): Observable<Organization[]> {
+//   const userId = this.auth.currentUser?.uid;
+//   console.log('🔍 Service: Querying organizations for user ID:', userId);
 
-  if (!userId) {
+//   if (!userId) {
+//     console.warn('❌ Service: No user ID found');
+//     return of([]);
+//   }
+
+//   try {
+//     const orgsQuery = query(
+//       collection(this.firestore, 'organizations'),
+//       where('members', 'array-contains', userId),
+//       orderBy('createdAt', 'desc')
+//     );
+
+//     console.log('📋 Service: Query created successfully');
+
+//     const observable = collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
+
+//     // ✅ Enhanced debugging
+//     observable.subscribe({
+//       next: (data) => {
+//         console.log('📊 Service: Query returned', data.length, 'organizations');
+//         console.log('📄 Service: Raw data:', data);
+//       },
+//       error: (err) => {
+//         console.error('❌ Service: Query error:', err);
+//         console.error('🔍 Service: Error details:', {
+//           code: err.code,
+//           message: err.message,
+//           query: 'organizations where members array-contains ' + userId + ' orderBy createdAt desc'
+//         });
+//       }
+//     });
+
+//     return observable;
+//   } catch (error) {
+//     console.error('❌ Service: Error creating query:', error);
+//     return of([]);
+//   }
+// }
+// ✅ UPDATED: Accept userId parameter to avoid timing issues
+getUserOrganizations(userId?: string): Observable<Organization[]> {
+  const userIdToUse = userId || this.auth.currentUser?.uid;
+
+  console.log('🔍 Service: Querying organizations for user ID:', userIdToUse);
+
+  if (!userIdToUse) {
     console.warn('❌ Service: No user ID found');
     return of([]);
   }
@@ -490,31 +534,13 @@ getUserOrganizations(): Observable<Organization[]> {
   try {
     const orgsQuery = query(
       collection(this.firestore, 'organizations'),
-      where('members', 'array-contains', userId),
+      where('members', 'array-contains', userIdToUse),
       orderBy('createdAt', 'desc')
     );
 
     console.log('📋 Service: Query created successfully');
 
-    const observable = collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
-
-    // ✅ Enhanced debugging
-    observable.subscribe({
-      next: (data) => {
-        console.log('📊 Service: Query returned', data.length, 'organizations');
-        console.log('📄 Service: Raw data:', data);
-      },
-      error: (err) => {
-        console.error('❌ Service: Query error:', err);
-        console.error('🔍 Service: Error details:', {
-          code: err.code,
-          message: err.message,
-          query: 'organizations where members array-contains ' + userId + ' orderBy createdAt desc'
-        });
-      }
-    });
-
-    return observable;
+    return collectionData(orgsQuery, { idField: 'id' }) as Observable<Organization[]>;
   } catch (error) {
     console.error('❌ Service: Error creating query:', error);
     return of([]);

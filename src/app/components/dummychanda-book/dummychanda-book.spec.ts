@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { NavigationComponent } from './navigation';
+import { DummychandaBook } from './dummychanda-book';
 
-describe('Navigation', () => {
-  let component: NavigationComponent;
-  let fixture: ComponentFixture<NavigationComponent>;
+describe('DummychandaBook', () => {
+  let component: DummychandaBook;
+  let fixture: ComponentFixture<DummychandaBook>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NavigationComponent]
+      imports: [DummychandaBook]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(NavigationComponent);
+    fixture = TestBed.createComponent(DummychandaBook);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

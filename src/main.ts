@@ -81,6 +81,9 @@ import { AppComponent } from './app/app';
 import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
 
+// ✅ Import this for JIT compilation support if needed
+import '@angular/compiler';
+
 // ✅ Correct Firebase imports
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';

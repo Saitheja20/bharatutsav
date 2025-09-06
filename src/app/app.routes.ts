@@ -25,6 +25,8 @@ import { TransactionsComponent } from './components/transactions/transactions';
 import { MembersComponent } from './components/members/members';
 import { OrganizationsComponent } from './components/organization/organization'; // Fixed import path
 import { AuthGuard } from './guards/auth.guard';
+import { ChandaBookComponent } from './components/chanda-book/chanda-book';
+import {ChandaBookComponentss} from './components/dummychanda-book/dummychanda-book';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -34,5 +36,14 @@ export const routes: Routes = [
   { path: 'members', component: MembersComponent },
   { path: 'organizations', component: OrganizationsComponent ,   canActivate: [AuthGuard] },// Add auth guard},
   { path: 'organizations/:orgId', component: OrganizationsComponent }, // Specific org view
+  { path: 'chanda-book', component: ChandaBookComponent },
+  // In app.routes.ts
+//{ path: 'chanda-books', component: ChandaBookComponentss },
+ {
+    path: 'chanda-book',
+    component: ChandaBookComponent,
+    title: 'Chanda Book - Festival Ledger'
+  },
+
   { path: '**', redirectTo: '/dashboard' } // ← MUST BE LAST - catches all unmatched routes
 ];
