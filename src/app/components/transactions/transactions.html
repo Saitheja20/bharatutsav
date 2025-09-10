@@ -143,7 +143,8 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <small>{{ transaction.createdAt?.toDate() | date:'shortDate' }}</small>
+                                            <small>{{ toDate(transaction.createdAt) | date:'shortDate' }}
+</small>
                                         </td>
                                         <td>
                                             <small class="text-muted">{{ transaction.createdByName || 'Unknown' }}</small>

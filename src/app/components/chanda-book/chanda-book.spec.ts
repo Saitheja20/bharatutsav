@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { NavigationComponent } from './navigation';
+import { ChandaBook } from './chanda-book';
 
-describe('Navigation', () => {
-  let component: NavigationComponent;
-  let fixture: ComponentFixture<NavigationComponent>;
+describe('ChandaBook', () => {
+  let component: ChandaBook;
+  let fixture: ComponentFixture<ChandaBook>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NavigationComponent]
+      imports: [ChandaBook]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(NavigationComponent);
+    fixture = TestBed.createComponent(ChandaBook);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

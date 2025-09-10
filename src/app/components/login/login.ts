@@ -17,7 +17,7 @@ import { handleFirebaseError } from '../../utils/firebase-error';
 export class LoginComponent implements OnInit {
   email: string = '';
   password: string = '';
-
+  showPassword: boolean = false; // 👈 add this
   private auth = inject(Auth);
   private authService = inject(AuthService);
 

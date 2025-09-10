@@ -78,9 +78,10 @@
 </div> -->
 
 
-<div class="container d-flex justify-content-center align-items-center min-vh-100">
+<!-- <div class="container d-flex justify-content-center align-items-center min-vh-100">
   <div class="card p-4 shadow login-card">
     <h3 class="text-center mb-4">Login to Festival Ledger</h3>
+    <img src="assets/images/logo/main-logo.png" alt="Festival Ledger Logo" class="img-fluid mb-4">
 
     <form>
       <div class="mb-3">
@@ -120,6 +121,89 @@
       <button type="button" class="btn btn-outline-danger w-100" (click)="signInWithGoogle()">
         <i class="fab fa-google me-2"></i> Sign in with Google
       </button>
+    </form>
+  </div>
+</div> -->
+
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100 bg-light">
+  <div class="card p-4 p-md-5 shadow-lg border-0 rounded-4 login-card" style="max-width: 420px; width: 100%;">
+
+    <!-- Logo -->
+    <div class="text-center mb-4">
+      <img src="images/logo/main-logo.png" alt="Bharat Utsav Logo" class="img-fluid" style="max-height: 80px;">
+    </div>
+
+    <!-- Title -->
+    <h3 class="text-center mb-4 fw-bold text-primary">Login to BharatUtsav</h3>
+
+    <!-- Form -->
+    <form #loginForm="ngForm" (ngSubmit)="loginWithEmail()" novalidate>
+
+      <!-- Email -->
+      <div class="mb-3">
+        <label for="email" class="form-label fw-semibold">Email Address</label>
+        <input
+          [(ngModel)]="email"
+          name="email"
+          type="email"
+          id="email"
+          class="form-control rounded-3"
+          placeholder="Enter your email"
+          required
+          email
+          #emailCtrl="ngModel"
+        />
+        <div *ngIf="emailCtrl.invalid && emailCtrl.touched" class="text-danger small mt-1">
+          Please enter a valid email.
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="mb-3">
+        <label for="password" class="form-label fw-semibold">Password</label>
+        <div class="input-group">
+          <input
+            [(ngModel)]="password"
+            name="password"
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            class="form-control rounded-start-3"
+            placeholder="Enter your password"
+            required
+            minlength="6"
+            #passwordCtrl="ngModel"
+          />
+          <button type="button" class="btn btn-outline-secondary rounded-end-3" (click)="showPassword = !showPassword">
+            <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </button>
+        </div>
+        <div *ngIf="passwordCtrl.invalid && passwordCtrl.touched" class="text-danger small mt-1">
+          Password must be at least 6 characters.
+        </div>
+      </div>
+
+      <!-- Login button -->
+      <button type="submit" class="btn btn-primary w-100 rounded-3 py-2 fw-semibold" [disabled]="loginForm.invalid">
+        Login
+      </button>
+
+      <!-- Divider -->
+      <div class="text-center my-3">
+        <span class="text-muted">or</span>
+      </div>
+
+      <!-- Google Sign-In -->
+      <button type="button" class="btn btn-outline-danger w-100 rounded-3 py-2 fw-semibold" (click)="signInWithGoogle()">
+        <i class="fab fa-google me-2"></i> Continue with Google
+      </button>
+
+      <!-- Extra links -->
+      <div class="d-flex justify-content-between mt-4 small">
+        <a href="javascript:void(0)" class="text-decoration-none disabled" tabindex="-1" aria-disabled="true">Forgot Password?</a>
+        <a href="javascript:void(0)" class="text-decoration-none disabled" tabindex="-1" aria-disabled="true">Create Account</a>
+      </div>
+
     </form>
   </div>
 </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,NgZone, inject } from '@angular/core';
 import { Auth, onAuthStateChanged, signOut } from '@angular/fire/auth';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
@@ -12,7 +12,7 @@ import { Router, RouterModule } from '@angular/router';
   styleUrl: './navigation.css'
 })
 export class NavigationComponent implements OnInit {
-
+private ngZone = inject(NgZone);
   isAuth = false;
   userName = 'Loading...';
   userPhotoUrl: string | null = null;
@@ -21,8 +21,11 @@ export class NavigationComponent implements OnInit {
   constructor(private auth: Auth, private firestore: Firestore, private router: Router) { }
 
   ngOnInit(): void {
-    // Listen for authentication state changes
-    onAuthStateChanged(this.auth, async (user) => {
+
+    this.ngZone.run(() => {
+      onAuthStateChanged(this.auth, user => {
+           // Your auth state handling logic here
+ onAuthStateChanged(this.auth, async (user) => {
       if (user) {
         this.isAuth = true;
         this.userName = user.displayName || user.email || 'User';
@@ -45,6 +48,13 @@ export class NavigationComponent implements OnInit {
         this.userRole = 'viewer';
       }
     });
+
+      });
+    });
+
+
+    // Listen for authentication state changes
+
   }
 
   async signOut() {

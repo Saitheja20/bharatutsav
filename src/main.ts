@@ -44,12 +44,86 @@
 // .catch(err => console.error(err));
 
 
- // This line is crucial and must be at the top
+// import { bootstrapApplication } from '@angular/platform-browser';
+// import { AppComponent } from './app/app';
+// import { importProvidersFrom } from '@angular/core';
+// import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+// import { getAuth, provideAuth, setPersistence, browserLocalPersistence } from '@angular/fire/auth';
+// import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+
+// const firebaseConfig = {
+//   // your config
+// };
+
+// // Initialize Firebase with persistence
+// const app = initializeApp(firebaseConfig);
+// const auth = getAuth(app);
+
+// // Set persistence to survive browser refresh
+// setPersistence(auth, browserLocalPersistence).catch((error) => {
+//   console.error('Failed to set auth persistence:', error);
+// });
+
+// bootstrapApplication(AppComponent, {
+//   providers: [
+//     provideFirebaseApp(() => app),
+//     provideAuth(() => auth),
+//     provideFirestore(() => getFirestore(app)),
+//     // ... other providers
+//   ]
+// });
+
+// ✅ CRITICAL: Import Zone.js FIRST (uncomment this line)
+// ✅ FIXED main.ts
 import 'zone.js';
-
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app';
+import { provideRouter } from '@angular/router';
+import { routes } from './app/app.routes';
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch((err) => console.error(err));
+// ✅ Import this for JIT compilation support if needed
+import '@angular/compiler';
+
+// ✅ Correct Firebase imports
+import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { getAuth, provideAuth } from '@angular/fire/auth';
+import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+
+import { environment } from './environments/environment';
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideRouter(routes),
+
+    // ✅ Simplified Firebase setup (no manual persistence)
+    provideFirebaseApp(() => {
+      const app = initializeApp(environment.firebaseConfig);
+      console.log('🔥 Firebase app initialized');
+      return app;
+    }),
+
+    provideAuth(() => {
+      const auth = getAuth();
+      console.log('🔐 Firebase Auth initialized');
+      return auth; // Remove manual setPersistence - it's automatic
+    }),
+
+    provideFirestore(() => {
+      const firestore = getFirestore();
+      console.log('🗄️ Firebase Firestore initialized');
+      return firestore;
+    }),
+  ]
+}).catch(err => console.error('❌ Error starting app:', err));
+
+
+
+ // This line is crucial and must be at the top
+// import 'zone.js';
+
+// import { bootstrapApplication } from '@angular/platform-browser';
+// import { appConfig } from './app/app.config';
+// import { AppComponent } from './app/app';
+
+// bootstrapApplication(AppComponent, appConfig)
+//   .catch((err) => console.error(err));

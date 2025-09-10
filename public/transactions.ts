@@ -1,15 +1,11 @@
-import { Component, OnInit, inject , NgZone} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
-import { Storage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
+import { Firestore, collection, query, orderBy, getDocs, addDoc, deleteDoc, doc, getDoc, serverTimestamp } from '@angular/fire/firestore';
+import { Storage, ref, uploadBytes, getDownloadURL, deleteObject } from '@angular/fire/storage';
 import { Router } from '@angular/router';
-import { NavigationComponent } from '../navigation/navigation';
-import { TransactionService } from '../../services/transaction.service'; // Import the service
-import { Transaction } from '../../interfaces/transaction.interface';
-import { serverTimestamp } from '@angular/fire/firestore';
-import { Timestamp } from 'firebase/firestore';
-
+import { NavigationComponent } from '../src/app/components/navigation/navigation';
 @Component({
   selector: 'app-transactions',
   standalone: true,
@@ -18,16 +14,9 @@ import { Timestamp } from 'firebase/firestore';
   styleUrl: './transactions.css'
 })
 export class TransactionsComponent implements OnInit {
-  private auth = inject(Auth);
-
-  private ngZone = inject(NgZone);
-  private storage = inject(Storage);
-  private router = inject(Router);
-  private transactionService = inject(TransactionService);
-
   userRole = 'viewer';
-  allTransactions: Transaction[] = [];
-  filteredTransactions: Transaction[] = [];
+  allTransactions: any[] = [];
+  filteredTransactions: any[] = [];
   isLoadingTransactions = true;
   isAddingTransaction = false;
 
@@ -39,7 +28,7 @@ export class TransactionsComponent implements OnInit {
   imageFile: File | null = null;
   imageUrl: string | null = null;
 
-  transactionToDelete: Transaction | null = null;
+  transactionToDelete: any = null;
   modalImageUrl: string | null = null;
 
   summaryCredits = 0;
@@ -47,20 +36,24 @@ export class TransactionsComponent implements OnInit {
   summaryBalance = 0;
   filterType = '';
 
-async ngOnInit(): Promise<void> {
-  this.ngZone.run(async () => {
+  constructor(
+    private auth: Auth,
+    private firestore: Firestore,
+    private storage: Storage,
+    private router: Router
+  ) { }
+
+  ngOnInit(): void {
     onAuthStateChanged(this.auth, async (user) => {
       if (user) {
-        const userDoc = await this.transactionService.firestoreGetUserDoc(user.uid);
+        const userDoc = await getDoc(doc(this.firestore, 'users', user.uid));
         this.userRole = userDoc.exists() ? userDoc.data()['role'] || 'viewer' : 'viewer';
         this.loadTransactions();
       } else {
         this.router.navigate(['/login']);
       }
     });
-  });
-}
-
+  }
 
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
@@ -92,33 +85,20 @@ async ngOnInit(): Promise<void> {
       if (this.imageFile) {
         const imageRef = ref(this.storage, `transaction-images/${Date.now()}_${this.imageFile.name}`);
         const snapshot = await uploadBytes(imageRef, this.imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
+       // imageUrl = await getDownloadURL(snapshot.ref);
       }
 
-      // const newTransactionData = {
-      //   type: this.newTransaction.type,
-      //   amount: this.newTransaction.amount,
-      //   note: this.newTransaction.note,
-      //   imageUrl
-      // };
+      const newTransactionData = {
+        type: this.newTransaction.type,
+        amount: this.newTransaction.amount,
+        note: this.newTransaction.note,
+        imageUrl,
+        createdBy: this.auth.currentUser?.uid,
+        createdByName: this.auth.currentUser?.displayName || this.auth.currentUser?.email,
+        createdAt: serverTimestamp()
+      };
 
-      const newTransactionData: Partial<Transaction> = {
-  type: this.newTransaction.type as 'credit' | 'debit',
-  amount: this.newTransaction.amount,
-  note: this.newTransaction.note,
-
-  createdBy: this.auth.currentUser?.uid!,
-  createdByName: this.auth.currentUser?.displayName ?? this.auth.currentUser?.email ?? '',
-
-  createdAt: serverTimestamp(),
-
-  imageUrl: this.imageUrl ?? null,
-
-};
-await this.transactionService.createTransaction(newTransactionData);
-
-
-     // await this.transactionService.createTransaction(newTransactionData);
+      await addDoc(collection(this.firestore, 'transactions'), newTransactionData);
 
       form.resetForm();
       this.removeImage();
@@ -135,7 +115,10 @@ await this.transactionService.createTransaction(newTransactionData);
   async loadTransactions(): Promise<void> {
     this.isLoadingTransactions = true;
     try {
-      this.allTransactions = await this.transactionService.getUserTransactions();
+      const q = query(collection(this.firestore, 'transactions'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+
+      this.allTransactions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       this.filterTransactions();
       this.updateSummary(this.allTransactions);
     } catch (error) {
@@ -145,20 +128,7 @@ await this.transactionService.createTransaction(newTransactionData);
       this.isLoadingTransactions = false;
     }
   }
-formatCreatedAt(timestamp: any): Date {
-  if (timestamp instanceof Timestamp) {
-    return timestamp.toDate();
-  }
-  return timestamp || new Date();
-}
 
-toDate(timestamp: Timestamp | any): Date {
-  if (timestamp instanceof Timestamp) {
-    return timestamp.toDate();
-  }
-  // If it's `FieldValue` (serverTimestamp) which isn’t a real date yet, return current date or handle differently
-  return new Date();
-}
   filterTransactions(): void {
     if (this.filterType) {
       this.filteredTransactions = this.allTransactions.filter(t => t.type === this.filterType);
@@ -168,29 +138,29 @@ toDate(timestamp: Timestamp | any): Date {
     this.updateSummary(this.filteredTransactions);
   }
 
-  updateSummary(transactions: Transaction[]): void {
-    this.summaryCredits = transactions.reduce((sum, t) => t.type === 'credit' ? sum + (parseFloat(t.amount as any) || 0) : sum, 0);
-    this.summaryDebits = transactions.reduce((sum, t) => t.type === 'debit' ? sum + (parseFloat(t.amount as any) || 0) : sum, 0);
+  updateSummary(transactions: any[]): void {
+    this.summaryCredits = transactions.reduce((sum, t) => t.type === 'credit' ? sum + (parseFloat(t.amount) || 0) : sum, 0);
+    this.summaryDebits = transactions.reduce((sum, t) => t.type === 'debit' ? sum + (parseFloat(t.amount) || 0) : sum, 0);
     this.summaryBalance = this.summaryCredits - this.summaryDebits;
   }
 
   showImageModal(imageUrl: string): void {
     this.modalImageUrl = imageUrl;
-    // Use modal service or Angular ViewChild to open modal
+    // You would use an Angular service or a view child to open the modal here
   }
 
-  confirmDelete(transaction: Transaction): void {
+  confirmDelete(transaction: any): void {
     this.transactionToDelete = transaction;
-    // Open delete confirmation modal
+    // You would use an Angular service or a view child to open the modal here
   }
 
   async deleteTransaction(): Promise<void> {
     if (!this.transactionToDelete) return;
     try {
-      await this.transactionService.deleteTransaction(this.transactionToDelete.id);
+      await deleteDoc(doc(this.firestore, 'transactions', this.transactionToDelete.id));
       this.loadTransactions();
       // showToast('Transaction deleted successfully!', 'success');
-      // Close modal
+      // Hide modal here
     } catch (error) {
       console.error('Error deleting transaction:', error);
       // showToast('Error deleting transaction.', 'error');
@@ -206,7 +176,10 @@ toDate(timestamp: Timestamp | any): Date {
       return;
     }
     try {
-      await this.transactionService.clearAllTransactions();
+      const deletePromises = this.allTransactions.map(transaction =>
+        deleteDoc(doc(this.firestore, 'transactions', transaction.id))
+      );
+      await Promise.all(deletePromises);
       this.loadTransactions();
       // showToast('All transactions cleared successfully!', 'success');
     } catch (error) {

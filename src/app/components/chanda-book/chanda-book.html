@@ -1,0 +1,562 @@
+
+<app-navigation></app-navigation>
+<div class="container mt-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2><i class="fas fa-book me-2"></i>Chanda Book Management</h2>
+      <p class="text-muted">Manage donations and track contributions for your organization</p>
+    </div>
+  </div>
+
+  <!-- Auth Loading State -->
+  <div class="row" *ngIf="isAuthLoading">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <div class="spinner-border text-primary mb-3" role="status"></div>
+          <h5>Initializing...</h5>
+          <p class="text-muted">Checking authentication status...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No User State -->
+  <div class="row" *ngIf="!isAuthLoading && !currentUser">
+    <div class="col-12">
+      <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+        <h4>Authentication Required</h4>
+        <p class="mb-3">Please log in to access the Chanda Book management system.</p>
+        <button class="btn btn-primary btn-lg" (click)="goHome()">
+          <i class="fas fa-sign-in-alt me-2"></i>Go to Login
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content (Only show when authenticated) -->
+  <div *ngIf="!isAuthLoading && currentUser">
+
+    <!-- Loading Organizations State -->
+    <div class="row mb-4" *ngIf="isLoadingOrgs">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body text-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status"></div>
+            <h5>Loading Organizations...</h5>
+            <p class="text-muted">Please wait while we fetch your organizations</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Organizations State -->
+    <div class="row mb-4" *ngIf="!isLoadingOrgs && organizations.length === 0">
+      <div class="col-12">
+        <div class="alert alert-info text-center">
+          <i class="fas fa-building fa-3x mb-3 text-info"></i>
+          <h4>No Organizations Found</h4>
+          <p class="mb-3">You need to be a member of an organization to use Chanda Book.</p>
+          <button class="btn btn-primary btn-lg" routerLink="/organizations">
+            <i class="fas fa-plus me-2"></i>Create or Join Organization
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Organization Selection -->
+    <div class="row mb-4" *ngIf="!isLoadingOrgs && organizations.length > 0">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-building me-2"></i>Select Organization</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngFor="let org of organizations; trackBy: trackByOrgId">
+                <div class="card h-100 org-card"
+                     [class.selected]="selectedOrg?.id === org.id"
+                     (click)="selectOrganization(org)">
+                  <div class="card-body text-center">
+                    <i class="fas fa-building fa-3x mb-3"
+                       [class.text-primary]="selectedOrg?.id !== org.id"
+                       [class.text-white]="selectedOrg?.id === org.id"></i>
+                    <h6 class="card-title">{{ org.name }}</h6>
+                    <small class="text-muted" *ngIf="selectedOrg?.id !== org.id">Click to select</small>
+                    <span class="badge bg-white text-primary" *ngIf="selectedOrg?.id === org.id">
+                      <i class="fas fa-check me-1"></i>Selected
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Chanda Book (if not exists) -->
+    <div class="row mb-4" *ngIf="selectedOrg && !chandaBook && !isLoadingChandaBook">
+      <div class="col-12">
+        <div class="card border-warning shadow-sm">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+              <i class="fas fa-plus-circle me-2"></i>Create Chanda Book for {{ selectedOrg.name }}
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              No Chanda Book exists for this organization. Create one to start managing donations.
+            </div>
+
+            <form [formGroup]="chandaBookForm" (ngSubmit)="createChandaBook()">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Target Amount (₹) *</label>
+                    <input type="number" class="form-control form-control-lg"
+                           formControlName="targetedAmount"
+                           placeholder="Enter target amount"
+                           min="1000">
+                    <div class="form-text">Minimum amount: ₹1,000</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Organization Logo URL (Optional)</label>
+                    <input type="url" class="form-control"
+                           formControlName="organizationLogo"
+                           placeholder="https://example.com/logo.png">
+                    <div class="form-text">Logo will appear on receipts</div>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-warning btn-lg"
+                      [disabled]="!chandaBookForm.valid || isCreatingChandaBook">
+                <span class="spinner-border spinner-border-sm me-2" *ngIf="isCreatingChandaBook"></span>
+                <i class="fas fa-plus me-2" *ngIf="!isCreatingChandaBook"></i>
+                {{ isCreatingChandaBook ? 'Creating...' : 'Create Chanda Book' }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading ChandaBook State -->
+    <div class="row mb-4" *ngIf="selectedOrg && isLoadingChandaBook">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body text-center py-4">
+            <div class="spinner-border text-primary mb-3" role="status"></div>
+            <h6>Loading Chanda Book...</h6>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chanda Book Dashboard -->
+    <div *ngIf="chandaBook && !isLoadingChandaBook" class="row">
+      <!-- Progress Card -->
+      <div class="col-12 mb-4">
+        <div class="card bg-gradient-primary text-white shadow">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-2 text-center">
+                <img *ngIf="chandaBook.organizationLogo"
+                     [src]="chandaBook.organizationLogo"
+                     alt="Logo" class="img-fluid rounded shadow"
+                     style="max-height: 80px;">
+                <i *ngIf="!chandaBook.organizationLogo"
+                   class="fas fa-building fa-4x opacity-75"></i>
+              </div>
+              <div class="col-md-10">
+                <h3 class="mb-2">{{ chandaBook.organizationName }}</h3>
+                <h4 class="mb-3">
+                  <i class="fas fa-rupee-sign me-1"></i>{{ chandaBook.totalCollected | number }} /
+                  <i class="fas fa-rupee-sign me-1"></i>{{ chandaBook.targetedAmount | number }}
+                </h4>
+                <div class="progress mb-2" style="height: 25px;">
+                  <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated"
+                       [style.width.%]="getProgressPercentage()"
+                       role="progressbar">
+                    <strong>{{ getProgressPercentage() }}%</strong>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <small>Progress towards target</small>
+                  <span class="badge bg-light text-dark">
+                    <i class="fas fa-calendar me-1"></i>
+                    {{ toDate(chandaBook.createdAt) | date:'mediumDate' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Tabs -->
+      <div class="col-12">
+        <ul class="nav nav-tabs nav-justified" id="chandaTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="add-donation-tab"
+                    data-bs-toggle="tab" data-bs-target="#add-donation"
+                    type="button" role="tab">
+              <i class="fas fa-plus me-2"></i>Add Donation
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="recent-donations-tab"
+                    data-bs-toggle="tab" data-bs-target="#recent-donations"
+                    type="button" role="tab">
+              <i class="fas fa-list me-2"></i>Recent Donations
+              <span class="badge bg-secondary ms-1">{{ recentDonations.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="leaderboard-tab"
+                    data-bs-toggle="tab" data-bs-target="#leaderboard"
+                    type="button" role="tab">
+              <i class="fas fa-trophy me-2"></i>Leaderboard
+              <span class="badge bg-warning text-dark ms-1">{{ donationStats.length }}</span>
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content shadow-sm" id="chandaTabsContent">
+          <!-- Add Donation Tab -->
+          <div class="tab-pane fade show active" id="add-donation" role="tabpanel">
+            <div class="card border-0 rounded-0 rounded-bottom">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-hand-holding-usd me-2 text-success"></i>Add New Donation
+                </h5>
+              </div>
+              <div class="card-body">
+                <form [formGroup]="donationForm" (ngSubmit)="addDonation()">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Category *</label>
+                        <select class="form-select" formControlName="category">
+                          <option value="sponsor">Sponsor</option>
+                          <option value="donation">Donation</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Donor Name *</label>
+                        <input type="text" class="form-control"
+                               formControlName="donorName"
+                               placeholder="Enter donor full name"
+                               [class.is-invalid]="hasError('donorName', 'required') || hasError('donorName', 'minlength')">
+                        <div class="invalid-feedback">
+                          Name is required (minimum 2 characters)
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-control"
+                               formControlName="phoneNumber"
+                               placeholder="10-digit mobile number"
+                               maxlength="10"
+                               [class.is-invalid]="hasError('phoneNumber', 'required') || hasError('phoneNumber', 'pattern')">
+                        <div class="invalid-feedback">
+                          Valid 10-digit phone number required
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Amount (₹) *</label>
+                        <input type="number" class="form-control"
+                               formControlName="amount"
+                               placeholder="Enter donation amount"
+                               min="1"
+                               [class.is-invalid]="hasError('amount', 'required') || hasError('amount', 'min')">
+                        <div class="invalid-feedback">
+                          Amount must be greater than 0
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Payment Method *</label>
+                        <select class="form-select" formControlName="paymentMethod">
+                          <option value="cash">Cash</option>
+                          <option value="upi">UPI</option>
+                          <option value="bank_transfer">Bank Transfer</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Address *</label>
+                        <input type="text" class="form-control"
+                               formControlName="address"
+                               placeholder="Enter complete address"
+                               [class.is-invalid]="hasError('address', 'required')">
+                        <div class="invalid-feedback">
+                          Address is required
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea class="form-control" formControlName="notes"
+                              rows="3" placeholder="Any additional notes or remarks"></textarea>
+                  </div>
+
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-success btn-lg"
+                            [disabled]="!donationForm.valid || isAddingDonation">
+                      <span class="spinner-border spinner-border-sm me-2" *ngIf="isAddingDonation"></span>
+                      <i class="fas fa-save me-2" *ngIf="!isAddingDonation"></i>
+                      {{ isAddingDonation ? 'Adding Donation...' : 'Add Donation' }}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Donations Tab -->
+          <div class="tab-pane fade" id="recent-donations" role="tabpanel">
+            <div class="card border-0 rounded-0 rounded-bottom">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-history me-2 text-primary"></i>Recent Donations
+                </h5>
+              </div>
+              <div class="card-body">
+                <div *ngIf="recentDonations.length === 0" class="text-center text-muted py-5">
+                  <i class="fas fa-inbox fa-3x mb-3"></i>
+                  <h6>No donations found</h6>
+                  <p>Start adding donations to see them here</p>
+                </div>
+
+                <div *ngIf="recentDonations.length > 0" class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-dark">
+                      <tr>
+                        <th><i class="fas fa-user me-1"></i>Donor</th>
+                        <th><i class="fas fa-phone me-1"></i>Phone</th>
+                        <th><i class="fas fa-rupee-sign me-1"></i>Amount</th>
+                        <th><i class="fas fa-tag me-1"></i>Category</th>
+                        <th><i class="fas fa-user-tie me-1"></i>Received By</th>
+                        <th><i class="fas fa-calendar me-1"></i>Date</th>
+                        <th><i class="fas fa-receipt me-1"></i>Receipt</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let donation of recentDonations; trackBy: trackByDonationId">
+                        <td>
+                          <div>
+                            <strong>{{ donation.donorName }}</strong>
+                            <br><small class="text-muted">{{ donation.address }}</small>
+                          </div>
+                        </td>
+                        <td>
+                          <a [href]="'tel:' + donation.phoneNumber" class="text-decoration-none">
+                            {{ donation.phoneNumber }}
+                          </a>
+                        </td>
+                        <td>
+                          <span class="badge bg-success fs-6">
+                            ₹{{ donation.amount | number }}
+                          </span>
+                        </td>
+                        <td>
+                          <span class="badge"
+                                [ngClass]="{
+                                  'bg-primary': donation.category === 'sponsor',
+                                  'bg-info': donation.category === 'donation',
+                                  'bg-secondary': donation.category === 'other'
+                                }">
+                            {{ donation.category | titlecase }}
+                          </span>
+                        </td>
+                        <td>
+                          <small>{{ donation.receivedByName }}</small>
+                        </td>
+                        <td>
+                          <small>{{ toDate(donation.createdAt) | date:'short' }}</small>
+                        </td>
+                        <td>
+                          <code class="small">{{ donation.receiptNumber }}</code>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leaderboard Tab -->
+          <div class="tab-pane fade" id="leaderboard" role="tabpanel">
+            <div class="card border-0 rounded-0 rounded-bottom">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-trophy me-2 text-warning"></i>Collection Leaderboard
+                </h5>
+              </div>
+              <div class="card-body">
+                <div *ngIf="donationStats.length === 0" class="text-center text-muted py-5">
+                  <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                  <h6>No collection data available</h6>
+                  <p>Add donations to see collector rankings</p>
+                </div>
+
+                <div *ngIf="donationStats.length > 0">
+                  <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-4" *ngFor="let stat of donationStats; let i = index; trackBy: trackByUserId">
+                      <div class="card h-100"
+                           [ngClass]="{
+                             'border-warning bg-warning bg-opacity-25': i === 0,
+                             'border-secondary bg-light': i === 1,
+                             'border-info bg-info bg-opacity-25': i === 2
+                           }">
+                        <div class="card-body text-center">
+                          <div class="mb-3">
+                            <i *ngIf="i === 0" class="fas fa-crown fa-3x text-warning"></i>
+                            <i *ngIf="i === 1" class="fas fa-medal fa-3x text-secondary"></i>
+                            <i *ngIf="i === 2" class="fas fa-award fa-3x text-info"></i>
+                            <i *ngIf="i > 2" class="fas fa-user fa-3x text-muted"></i>
+                          </div>
+                          <h6 class="card-title">{{ stat.userDisplayName }}</h6>
+                          <h4 class="text-success mb-2">
+                            <i class="fas fa-rupee-sign"></i>{{ stat.totalAmount | number }}
+                          </h4>
+                          <p class="text-muted mb-3">
+                            {{ stat.donationCount }} donation{{ stat.donationCount !== 1 ? 's' : '' }}
+                          </p>
+                          <span class="badge"
+                                [ngClass]="{
+                                  'bg-warning text-dark': i === 0,
+                                  'bg-secondary': i === 1,
+                                  'bg-info': i === 2,
+                                  'bg-primary': i > 2
+                                }">
+                            #{{ i + 1 }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal fade" [class.show]="showReceiptModal" [style.display]="showReceiptModal ? 'block' : 'none'"
+     id="receiptModal" tabindex="-1" *ngIf="showReceiptModal">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-check-circle me-2"></i>Donation Added Successfully!
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeReceiptModal()"></button>
+      </div>
+      <div class="modal-body" *ngIf="lastDonation && chandaBook">
+        <!-- Receipt Template -->
+        <div class="receipt-template p-4 border rounded bg-light" id="receipt-content">
+          <div class="text-center mb-4">
+            <img *ngIf="chandaBook.organizationLogo"
+                 [src]="chandaBook.organizationLogo"
+                 alt="Organization Logo" class="img-fluid mb-3"
+                 style="max-height: 100px;">
+            <h3 class="mb-2 text-primary">{{ chandaBook.organizationName }}</h3>
+            <h4 class="text-success mb-0">DONATION RECEIPT</h4>
+            <hr class="my-3">
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <p class="mb-2"><strong>Receipt No:</strong> {{ lastDonation.receiptNumber }}</p>
+              <p class="mb-2"><strong>Date:</strong> {{ toDate(lastDonation.createdAt) | date:'fullDate' }}</p>
+              <p class="mb-2"><strong>Time:</strong> {{ toDate(lastDonation.createdAt) | date:'shortTime' }}</p>
+              <p class="mb-0"><strong>Category:</strong> {{ lastDonation.category | titlecase }}</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <p class="mb-2"><strong>Payment Method:</strong> {{ lastDonation.paymentMethod | titlecase }}</p>
+              <p class="mb-0"><strong>Received By:</strong> {{ lastDonation.receivedByName }}</p>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Donor Information:</h6>
+            <div class="bg-white p-3 rounded border">
+              <p class="mb-2"><strong>Name:</strong> {{ lastDonation.donorName }}</p>
+              <p class="mb-2"><strong>Phone:</strong> {{ lastDonation.phoneNumber }}</p>
+              <p class="mb-2"><strong>Address:</strong> {{ lastDonation.address }}</p>
+              <p class="mb-0" *ngIf="lastDonation.notes">
+                <strong>Notes:</strong> {{ lastDonation.notes }}
+              </p>
+            </div>
+          </div>
+
+          <div class="text-center py-4 bg-success text-white rounded mb-4">
+            <h2 class="mb-0">
+              <i class="fas fa-rupee-sign me-2"></i>{{ lastDonation.amount | number }}
+            </h2>
+            <p class="mb-0">Amount Donated</p>
+          </div>
+
+          <div class="text-center mb-4">
+            <p class="mb-2 fst-italic">"Thank you for your generous contribution!"</p>
+            <small class="text-muted">This is a computer-generated receipt.</small>
+          </div>
+
+          <!-- Organization Stamp Placeholder -->
+          <div class="text-end">
+            <div class="border border-2 border-dark d-inline-block p-3 text-center"
+                 style="min-width: 150px; min-height: 80px;">
+              <small class="text-muted">Organization<br>Stamp</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success btn-lg me-2" (click)="shareReceiptViaWhatsApp()">
+          <i class="fab fa-whatsapp me-2"></i>Share via WhatsApp
+        </button>
+        <button type="button" class="btn btn-primary btn-lg me-2" (click)="printReceipt()">
+          <i class="fas fa-print me-2"></i>Print Receipt
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="closeReceiptModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div class="modal-backdrop fade" [class.show]="showReceiptModal" *ngIf="showReceiptModal"></div>
+
+  <!-- Header -->

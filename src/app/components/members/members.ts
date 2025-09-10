@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone,  inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
-import { Firestore, collection, query, getDocs, setDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from '@angular/fire/firestore';
+import { Firestore, addDoc,collection, query, getDocs, setDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { NavigationComponent } from '../navigation/navigation';
 
@@ -14,13 +14,17 @@ import { NavigationComponent } from '../navigation/navigation';
   styleUrl: './members.css'
 })
 export class MembersComponent implements OnInit {
+
+// private auth = inject(Auth);
+  private ngZone = inject(NgZone);
+
   userRole = 'viewer';
   currentUserId: string | null = null;
   isLoadingMembers = true;
   isAddingMember = false;
   isUpdatingRole = false;
   isRemovingMember = false;
-
+  bootstrap: any;
   allMembers: any[] = [];
   filteredMembers: any[] = [];
 
@@ -44,7 +48,12 @@ export class MembersComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    onAuthStateChanged(this.auth, async (user) => {
+
+ this.ngZone.run(() => {
+      onAuthStateChanged(this.auth, user => {
+        // Your auth state handling logic here
+
+           onAuthStateChanged(this.auth, async (user) => {
       if (user) {
         this.currentUserId = user.uid;
         const userDoc = await getDoc(doc(this.firestore, 'users', user.uid));
@@ -59,7 +68,38 @@ export class MembersComponent implements OnInit {
         this.router.navigate(['/login']);
       }
     });
+      });
+    });
+
+
+
   }
+async inviteUser(email: string, role: 'admin' | 'member' | 'editor' = 'member') {
+  if (this.userRole !== 'admin') {
+    alert('Only admins can invite users');
+    return;
+  }
+
+  try {
+    const invitation = {
+      email: email,
+      role: role,
+      invitedBy: this.currentUserId,
+      invitedAt: new Date(),
+      status: 'pending'
+    };
+
+    await addDoc(collection(this.firestore, 'invitations'), invitation);
+
+    // You can optionally send an invitation email here or notify in the UI
+    alert(`${email} has been invited as ${role}`);
+
+    this.loadMembers(); // Refresh member/invitation list if needed
+  } catch (error) {
+    console.error('Error sending invitation:', error);
+    alert('Failed to invite user. Please try again.');
+  }
+}
 
   async addMember(): Promise<void> {
     this.isAddingMember = true;
@@ -118,6 +158,18 @@ export class MembersComponent implements OnInit {
   showChangeRoleModal(member: any): void {
     this.memberToUpdate = member;
     this.newRole = member.role;
+    // Open the Bootstrap modal by ID
+    const modalElement = document.getElementById('changeRoleModal');
+    if (modalElement) {
+      // Use the global bootstrap from window
+      const bootstrapModal = (window as any).bootstrap?.Modal;
+      if (bootstrapModal) {
+        const modal = new bootstrapModal(modalElement);
+        modal.show();
+      } else {
+        console.error('Bootstrap Modal is not available on window.');
+      }
+    }
   }
 
   async updateMemberRole(): Promise<void> {
@@ -139,6 +191,17 @@ export class MembersComponent implements OnInit {
 
   showRemoveMemberModal(member: any): void {
     this.memberToRemove = member;
+
+    const modalElement = document.getElementById('removeMemberModal');
+    if (modalElement) {
+      const bootstrapModal = (window as any).bootstrap?.Modal;
+      if (bootstrapModal) {
+        const modal = new bootstrapModal(modalElement);
+        modal.show();
+      } else {
+        console.error('Bootstrap Modal is not available on window.');
+      }
+    }
   }
 
   async removeMember(): Promise<void> {
