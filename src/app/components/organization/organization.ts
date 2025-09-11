@@ -127,6 +127,7 @@ export class OrganizationsComponent implements OnInit {
     this.authStateSubscription?.unsubscribe();
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
+  
   // FIXED: Subscribe to real-time organization updates
   // subscribeToOrganizations(): void {
   //   this.isLoadingOrgs = true;
@@ -728,5 +729,27 @@ async selectOrganization(org: Organization): Promise<void> {
   ]);
 }
 
+async updateMemberRole(member: OrganizationMember): Promise<void> {
+  if (this.userRole !== 'admin') {
+    alert('Only admins can change member roles.');
+    return;
+  }
+
+  if (!this.selectedOrg) {
+    alert('No organization selected.');
+    return;
+  }
+
+  try {
+    // Call your service to update role
+    await this.organizationService.updateMemberRole(this.selectedOrg.id, member.userId, member.role);
+    alert(`Role updated to ${member.role} for ${member.displayName || member.email}`);
+    // Optionally reload members list to sync with backend state
+    await this.loadMembers();
+  } catch (error) {
+    console.error('Error updating member role:', error);
+    alert('Failed to update member role.');
+  }
+}
 
 }

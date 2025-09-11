@@ -588,6 +588,27 @@ getUserOrganizations(userId?: string): Observable<Organization[]> {
     }
     return [];
   }
+// async updateMemberRole(orgId: string, userId: string, newRole: 'admin' | 'editor' | 'viewer'): Promise<void> {
+//   const orgRef = doc(this.firestore, 'organizations', orgId);
+//   const memberPath = `members/${userId}`;
+  
+//   // Assuming members are stored as a subcollection or inside an array/map:
+//   // You need to update the role field for the member in Firestore here - e.g.:
+  
+//   // Example if members are stored as a subcollection:
+//   const memberDocRef = doc(this.firestore, `organizations/${orgId}/members/${userId}`);
+//   await updateDoc(memberDocRef, { role: newRole });
+  
+//   // Or if members are stored as an array in org document, modify accordingly.
+// }
+async updateMemberRole(orgId: string, userId: string, newRole: string): Promise<void> {
+  const orgDocRef = doc(this.firestore, `organizations/${orgId}`);
+  // Update single field in memberRoles map
+  const fieldPath = `memberRoles.${userId}`;
+  await updateDoc(orgDocRef, {
+    [fieldPath]: newRole
+  });
+}
 
   // Add member to organization
   async addMemberToOrganization(orgId: string, memberData: any): Promise<void> {
