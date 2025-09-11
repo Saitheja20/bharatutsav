@@ -6,57 +6,58 @@
   </div>
 </div>
 <div *ngIf="!isAuthLoading">
-<app-navigation></app-navigation>
+  <app-navigation></app-navigation>
 
-<!-- Loading Screen -->
-<div *ngIf="isAuthLoading" class="container mt-4">
-  <div class="text-center">
-    <i class="fas fa-spinner fa-spin fa-2x"></i>
-    <p class="mt-3">Checking authentication...</p>
-  </div>
-</div>
-
-<!-- Main Content -->
-<div *ngIf="!isAuthLoading" class="container mt-4">
-  <!-- Header -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <h2><i class="fas fa-building me-2"></i>Organizations Management</h2>
+  <!-- Loading Screen -->
+  <div *ngIf="isAuthLoading" class="container mt-4">
+    <div class="text-center">
+      <i class="fas fa-spinner fa-spin fa-2x"></i>
+      <p class="mt-3">Checking authentication...</p>
     </div>
   </div>
 
-  <!-- Organization Selection & Creation -->
-  <div class="row mb-4">
-    <!-- My Organizations List -->
-    <div class="col-md-8">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0"><i class="fas fa-list me-2"></i>My Organizations</h5>
-        </div>
-        <div class="card-body">
-          <div *ngIf="isLoadingOrgs" class="text-center">
-            <i class="fas fa-spinner fa-spin"></i> Loading organizations...
-          </div>
+  <!-- Main Content -->
+  <div *ngIf="!isAuthLoading" class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h2><i class="fas fa-building me-2"></i>Organizations Management</h2>
+      </div>
+    </div>
 
-          <div *ngIf="!isLoadingOrgs && organizations.length === 0" class="text-center text-muted">
-            <i class="fas fa-building fa-2x mb-3 text-muted"></i>
-            <p>No organizations found. Create your first organization!</p>
+    <!-- Organization Selection & Creation -->
+    <div class="row mb-4">
+      <!-- My Organizations List -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>My Organizations</h5>
           </div>
+          <div class="card-body">
+            <div *ngIf="isLoadingOrgs" class="text-center">
+              <i class="fas fa-spinner fa-spin"></i> Loading organizations...
+            </div>
 
-          <div *ngIf="!isLoadingOrgs && organizations.length > 0" class="row">
-            <div class="col-md-6 mb-3" *ngFor="let org of organizations">
-              <div class="card h-100" [class.border-primary]="selectedOrg?.id === org.id"
-                   (click)="selectOrganization(org)" style="cursor: pointer;">
-                <div class="card-body">
-                  <h6 class="card-title">
-                    <i class="fas fa-building me-2"></i>{{ org.name }}
-                  </h6>
-                  <p class="card-text small text-muted">{{ org.description || 'No description' }}</p>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">
-                      <i class="fas fa-calendar me-1"></i>{{ toDate(org.createdAt) | date:'shortDate' }}
-                    </small>
-                    <span *ngIf="selectedOrg?.id === org.id" class="badge bg-primary">Selected</span>
+            <div *ngIf="!isLoadingOrgs && organizations.length === 0" class="text-center text-muted">
+              <i class="fas fa-building fa-2x mb-3 text-muted"></i>
+              <p>No organizations found. Create your first organization!</p>
+            </div>
+
+            <div *ngIf="!isLoadingOrgs && organizations.length > 0" class="row">
+              <div class="col-md-6 mb-3" *ngFor="let org of organizations">
+                <div class="card h-100" [class.border-primary]="selectedOrg?.id === org.id"
+                  (click)="selectOrganization(org)" style="cursor: pointer;">
+                  <div class="card-body">
+                    <h6 class="card-title">
+                      <i class="fas fa-building me-2"></i>{{ org.name }}
+                    </h6>
+                    <p class="card-text small text-muted">{{ org.description || 'No description' }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>{{ toDate(org.createdAt) | date:'shortDate' }}
+                      </small>
+                      <span *ngIf="selectedOrg?.id === org.id" class="badge bg-primary">Selected</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -64,131 +65,128 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Create New Organization -->
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create Organization</h5>
-        </div>
-        <div class="card-body">
-          <form (ngSubmit)="createOrganization()" #orgForm="ngForm">
-            <div class="mb-3">
-              <label for="orgName" class="form-label">Organization Name *</label>
-              <input type="text" class="form-control" id="orgName" [(ngModel)]="newOrg.name"
-                     name="orgName" required placeholder="Enter organization name">
-            </div>
-            <div class="mb-3">
-              <label for="orgDescription" class="form-label">Description</label>
-              <textarea class="form-control" id="orgDescription" [(ngModel)]="newOrg.description"
-                        name="orgDescription" rows="3" placeholder="Organization description"></textarea>
-            </div>
-            <button type="submit" class="btn btn-success w-100" [disabled]="isCreatingOrg || !orgForm.valid">
-              <i class="fas" [ngClass]="{'fa-spinner fa-spin': isCreatingOrg, 'fa-plus': !isCreatingOrg}"></i>
-              {{ isCreatingOrg ? 'Creating...' : 'Create Organization' }}
-            </button>
-          </form>
+      <!-- Create New Organization -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create Organization</h5>
+          </div>
+          <div class="card-body">
+            <form (ngSubmit)="createOrganization()" #orgForm="ngForm">
+              <div class="mb-3">
+                <label for="orgName" class="form-label">Organization Name *</label>
+                <input type="text" class="form-control" id="orgName" [(ngModel)]="newOrg.name" name="orgName" required
+                  placeholder="Enter organization name">
+              </div>
+              <div class="mb-3">
+                <label for="orgDescription" class="form-label">Description</label>
+                <textarea class="form-control" id="orgDescription" [(ngModel)]="newOrg.description"
+                  name="orgDescription" rows="3" placeholder="Organization description"></textarea>
+              </div>
+              <button type="submit" class="btn btn-success w-100" [disabled]="isCreatingOrg || !orgForm.valid">
+                <i class="fas" [ngClass]="{'fa-spinner fa-spin': isCreatingOrg, 'fa-plus': !isCreatingOrg}"></i>
+                {{ isCreatingOrg ? 'Creating...' : 'Create Organization' }}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Add this section after the "Create Organization" card -->
-<div class="col-md-4">
-  <div class="card">
-    <div class="card-header bg-info text-white">
-      <h6 class="mb-0"><i class="fas fa-users me-2"></i>Join Organization</h6>
-    </div>
-    <div class="card-body">
-      <form (ngSubmit)="joinOrganization()" #joinForm="ngForm">
-        <div class="mb-3">
-          <label for="orgCode" class="form-label">Organization Code *</label>
-          <input type="text" class="form-control text-uppercase" id="orgCode"
-                 [(ngModel)]="joinOrgForm.organizationCode" name="orgCode"
-                 required placeholder="Enter 6-digit code" maxlength="6">
-          <div class="form-text">Ask an admin for the organization code</div>
-        </div>
-        <button type="submit" class="btn btn-info w-100"
-                [disabled]="!joinForm.valid">
-          <i class="fas fa-paper-plane me-2"></i>Request to Join
-        </button>
-      </form>
-    </div>
-  </div>
-</div>
-
-  </div>
-<!-- Add this after organization selection -->
-<div *ngIf="selectedOrg && userRole === 'admin'" class="alert alert-info">
-  <i class="fas fa-key me-2"></i>
-  <strong>Share this code:</strong>
-  <code class="ms-2">{{ selectedOrg.organizationCode }}</code>
-  <button class="btn btn-outline-primary btn-sm ms-2"
-          (click)="copyToClipboard(selectedOrg.organizationCode)">
-    <i class="fas fa-copy me-1"></i>Copy
-  </button>
-</div>
-
-  <!-- Selected Organization Details -->
-  <div *ngIf="selectedOrg" class="row">
-    <!-- Financial Overview -->
-    <div class="col-12 mb-4">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0">
-            <i class="fas fa-chart-pie me-2"></i>{{ selectedOrg.name }} - Financial Overview
-          </h5>
-        </div>
-        <div class="card-body">
-          <!-- Summary Cards -->
-          <div class="row mb-4">
-            <div class="col-md-4">
-              <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                  <i class="fas fa-arrow-up fa-2x mb-2"></i>
-                  <h6>Total Credits</h6>
-                  <h3>₹{{ totalCredits | number:'1.2-2' }}</h3>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card bg-danger text-white">
-                <div class="card-body text-center">
-                  <i class="fas fa-arrow-down fa-2x mb-2"></i>
-                  <h6>Total Debits</h6>
-                  <h3>₹{{ totalDebits | number:'1.2-2' }}</h3>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card" [ngClass]="currentBalance >= 0 ? 'bg-info text-white' : 'bg-warning text-dark'">
-                <div class="card-body text-center">
-                  <i class="fas fa-balance-scale fa-2x mb-2"></i>
-                  <h6>Current Balance</h6>
-                  <h3>₹{{ currentBalance | number:'1.2-2' }}</h3>
-                </div>
-              </div>
-            </div>
+      <!-- Add this section after the "Create Organization" card -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header bg-info text-white">
+            <h6 class="mb-0"><i class="fas fa-users me-2"></i>Join Organization</h6>
           </div>
+          <div class="card-body">
+            <form (ngSubmit)="joinOrganization()" #joinForm="ngForm">
+              <div class="mb-3">
+                <label for="orgCode" class="form-label">Organization Code *</label>
+                <input type="text" class="form-control text-uppercase" id="orgCode"
+                  [(ngModel)]="joinOrgForm.organizationCode" name="orgCode" required placeholder="Enter 6-digit code"
+                  maxlength="6">
+                <div class="form-text">Ask an admin for the organization code</div>
+              </div>
+              <button type="submit" class="btn btn-info w-100" [disabled]="!joinForm.valid">
+                <i class="fas fa-paper-plane me-2"></i>Request to Join
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
 
-          <!-- Charts Row -->
-          <div class="row" *ngIf="totalCredits > 0 || totalDebits > 0">
-            <div class="col-md-6">
-              <h6 class="text-center">Credits vs Debits</h6>
-              <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
+    </div>
+    <!-- Add this after organization selection -->
+    <div *ngIf="selectedOrg && userRole === 'admin'" class="alert alert-info">
+      <i class="fas fa-key me-2"></i>
+      <strong>Share this code:</strong>
+      <code class="ms-2">{{ selectedOrg.organizationCode }}</code>
+      <button class="btn btn-outline-primary btn-sm ms-2" (click)="copyToClipboard(selectedOrg.organizationCode)">
+        <i class="fas fa-copy me-1"></i>Copy
+      </button>
+    </div>
+
+    <!-- Selected Organization Details -->
+    <div *ngIf="selectedOrg" class="row">
+      <!-- Financial Overview -->
+      <div class="col-12 mb-4">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-chart-pie me-2"></i>{{ selectedOrg.name }} - Financial Overview
+            </h5>
+          </div>
+          <div class="card-body">
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+              <div class="col-md-4">
+                <div class="card bg-success text-white">
+                  <div class="card-body text-center">
+                    <i class="fas fa-arrow-up fa-2x mb-2"></i>
+                    <h6>Total Credits</h6>
+                    <h3>₹{{ totalCredits | number:'1.2-2' }}</h3>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card bg-danger text-white">
+                  <div class="card-body text-center">
+                    <i class="fas fa-arrow-down fa-2x mb-2"></i>
+                    <h6>Total Debits</h6>
+                    <h3>₹{{ totalDebits | number:'1.2-2' }}</h3>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card" [ngClass]="currentBalance >= 0 ? 'bg-info text-white' : 'bg-warning text-dark'">
+                  <div class="card-body text-center">
+                    <i class="fas fa-balance-scale fa-2x mb-2"></i>
+                    <h6>Current Balance</h6>
+                    <h3>₹{{ currentBalance | number:'1.2-2' }}</h3>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="col-md-6">
-              <h6 class="text-center">Daily Summary (Last 7 Days)</h6>
-              <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
+
+            <!-- Charts Row -->
+            <div class="row" *ngIf="totalCredits > 0 || totalDebits > 0">
+              <div class="col-md-6">
+                <h6 class="text-center">Credits vs Debits</h6>
+                <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-center">Daily Summary (Last 7 Days)</h6>
+                <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Management Tabs -->
-    <div class="col-12">
-      <!-- <ul class="nav nav-tabs" id="orgTabs" role="tablist">
+      <!-- Management Tabs -->
+      <div class="col-12">
+        <!-- <ul class="nav nav-tabs" id="orgTabs" role="tablist">
         <li class="nav-item" role="presentation">
           <button class="nav-link active" id="members-tab" data-bs-toggle="tab"
                   data-bs-target="#members" type="button" role="tab" aria-controls="members" aria-selected="true">
@@ -204,162 +202,163 @@
       </ul> -->
 
 
-      <ul class="nav nav-tabs" id="orgTabs" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="members-tab" data-bs-toggle="tab"
-            data-bs-target="#members" type="button" role="tab">
-      <i class="fas fa-users me-2"></i>Members ({{ selectedOrgMembers.length }})
-    </button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="transactions-tab" data-bs-toggle="tab"
-            data-bs-target="#transactions" type="button" role="tab">
-      <i class="fas fa-receipt me-2"></i>Transactions ({{ selectedOrgTransactions.length }})
-    </button>
-  </li>
-  <!-- ✅ ADD THIS NEW TAB -->
-  <li class="nav-item" role="presentation" *ngIf="userRole === 'admin'">
-  <button class="nav-link" id="requests-tab" data-bs-toggle="tab"
-          data-bs-target="#requests" type="button" role="tab">
-    <i class="fas fa-user-clock me-2"></i>Join Requests
-    <span class="badge bg-warning text-dark ms-1" *ngIf="(pendingJoinRequests?.length ?? 0) > 0">
-      {{ pendingJoinRequests?.length }}
-    </span>
-  </button>
-</li>
-</ul>
+        <ul class="nav nav-tabs" id="orgTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="members-tab" data-bs-toggle="tab" data-bs-target="#members"
+              type="button" role="tab">
+              <i class="fas fa-users me-2"></i>Members ({{ selectedOrgMembers.length }})
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions"
+              type="button" role="tab">
+              <i class="fas fa-receipt me-2"></i>Transactions ({{ selectedOrgTransactions.length }})
+            </button>
+          </li>
+          <!-- ✅ ADD THIS NEW TAB -->
+          <li class="nav-item" role="presentation" *ngIf="userRole === 'admin'">
+            <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests" type="button"
+              role="tab">
+              <i class="fas fa-user-clock me-2"></i>Join Requests
+              <span class="badge bg-warning text-dark ms-1" *ngIf="(pendingJoinRequests?.length ?? 0) > 0">
+                {{ pendingJoinRequests?.length }}
+              </span>
+            </button>
+          </li>
+        </ul>
 
 
-      <div class="tab-content" id="orgTabsContent">
-        <!-- Members Tab -->
-        <div class="tab-pane fade show active" id="members" role="tabpanel" aria-labelledby="members-tab">
-          <div class="row mt-4">
-            <!-- Add Member Form -->
-            <div class="col-md-4" *ngIf="userRole === 'admin'">
-              <div class="card">
-                <div class="card-header bg-primary text-white">
-                  <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>Add Member</h6>
+        <div class="tab-content" id="orgTabsContent">
+          <!-- Members Tab -->
+          <div class="tab-pane fade show active" id="members" role="tabpanel" aria-labelledby="members-tab">
+            <div class="row mt-4">
+              <!-- Add Member Form -->
+              <div class="col-md-4" *ngIf="userRole === 'admin'">
+                <div class="card">
+                  <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>Add Member</h6>
+                  </div>
+                  <div class="card-body">
+                    <form (ngSubmit)="addMember()" #memberForm="ngForm">
+                      <div class="mb-3">
+                        <label for="memberEmail" class="form-label">Email Address *</label>
+                        <input type="email" class="form-control" id="memberEmail" [(ngModel)]="newMember.email"
+                          name="email" required placeholder="user@example.com">
+                        <div class="form-text">Member must have a registered account</div>
+                      </div>
+
+                      <div class="mb-3">
+                        <label for="memberDisplayName" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="memberDisplayName"
+                          [(ngModel)]="newMember.displayName" name="displayName" placeholder="Member's display name">
+                      </div>
+
+                      <div class="mb-3">
+                        <label for="memberRole" class="form-label">Role *</label>
+                        <select class="form-select" id="memberRole" [(ngModel)]="newMember.role" name="role" required>
+                          <option value="viewer">
+                            <i class="fas fa-eye"></i> Viewer - View only access
+                          </option>
+                          <option value="editor">
+                            <i class="fas fa-edit"></i> Editor - Can add/edit transactions
+                          </option>
+                          <option value="admin">
+                            <i class="fas fa-crown"></i> Admin - Full management access
+                          </option>
+                        </select>
+                      </div>
+
+                      <button type="submit" class="btn btn-primary w-100"
+                        [disabled]="isAddingMember || !memberForm.valid">
+                        <i class="fas"
+                          [ngClass]="{'fa-spinner fa-spin': isAddingMember, 'fa-user-plus': !isAddingMember}"></i>
+                        {{ isAddingMember ? 'Adding...' : 'Add Member' }}
+                      </button>
+                    </form>
+                  </div>
                 </div>
-                <div class="card-body">
-                  <form (ngSubmit)="addMember()" #memberForm="ngForm">
+
+                <!-- Role Permissions Info -->
+                <div class="card mt-3">
+                  <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Role Permissions</h6>
+                  </div>
+                  <div class="card-body">
                     <div class="mb-3">
-                      <label for="memberEmail" class="form-label">Email Address *</label>
-                      <input type="email" class="form-control" id="memberEmail"
-                             [(ngModel)]="newMember.email" name="email" required
-                             placeholder="user@example.com">
-                      <div class="form-text">Member must have a registered account</div>
+                      <h6 class="text-success"><i class="fas fa-eye me-2"></i>Viewer</h6>
+                      <ul class="small text-muted mb-0">
+                        <li>View organization details</li>
+                        <li>View all transactions</li>
+                        <li>View financial reports</li>
+                      </ul>
                     </div>
 
                     <div class="mb-3">
-                      <label for="memberDisplayName" class="form-label">Display Name</label>
-                      <input type="text" class="form-control" id="memberDisplayName"
-                             [(ngModel)]="newMember.displayName" name="displayName"
-                             placeholder="Member's display name">
+                      <h6 class="text-warning"><i class="fas fa-edit me-2"></i>Editor</h6>
+                      <ul class="small text-muted mb-0">
+                        <li>All viewer permissions</li>
+                        <li>Add/edit/delete transactions</li>
+                        <li>Upload transaction receipts</li>
+                      </ul>
                     </div>
 
-                    <div class="mb-3">
-                      <label for="memberRole" class="form-label">Role *</label>
-                      <select class="form-select" id="memberRole" [(ngModel)]="newMember.role" name="role" required>
-                        <option value="viewer">
-                          <i class="fas fa-eye"></i> Viewer - View only access
-                        </option>
-                        <option value="editor">
-                          <i class="fas fa-edit"></i> Editor - Can add/edit transactions
-                        </option>
-                        <option value="admin">
-                          <i class="fas fa-crown"></i> Admin - Full management access
-                        </option>
-                      </select>
+                    <div class="mb-0">
+                      <h6 class="text-danger"><i class="fas fa-crown me-2"></i>Admin</h6>
+                      <ul class="small text-muted mb-0">
+                        <li>All editor permissions</li>
+                        <li>Add/remove members</li>
+                        <li>Manage organization settings</li>
+                      </ul>
                     </div>
-
-                    <button type="submit" class="btn btn-primary w-100"
-                            [disabled]="isAddingMember || !memberForm.valid">
-                      <i class="fas" [ngClass]="{'fa-spinner fa-spin': isAddingMember, 'fa-user-plus': !isAddingMember}"></i>
-                      {{ isAddingMember ? 'Adding...' : 'Add Member' }}
-                    </button>
-                  </form>
+                  </div>
                 </div>
               </div>
 
-              <!-- Role Permissions Info -->
-              <div class="card mt-3">
-                <div class="card-header">
-                  <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Role Permissions</h6>
-                </div>
-                <div class="card-body">
-                  <div class="mb-3">
-                    <h6 class="text-success"><i class="fas fa-eye me-2"></i>Viewer</h6>
-                    <ul class="small text-muted mb-0">
-                      <li>View organization details</li>
-                      <li>View all transactions</li>
-                      <li>View financial reports</li>
-                    </ul>
+              <!-- Members List -->
+              <div [class]="userRole === 'admin' ? 'col-md-8' : 'col-12'">
+                <div class="card">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-users me-2"></i>Organization Members</h6>
+                    <span class="badge bg-secondary">{{ selectedOrgMembers.length }} members</span>
                   </div>
+                  <div class="card-body">
+                    <div *ngIf="isLoadingMembers" class="text-center">
+                      <i class="fas fa-spinner fa-spin"></i> Loading members...
+                    </div>
 
-                  <div class="mb-3">
-                    <h6 class="text-warning"><i class="fas fa-edit me-2"></i>Editor</h6>
-                    <ul class="small text-muted mb-0">
-                      <li>All viewer permissions</li>
-                      <li>Add/edit/delete transactions</li>
-                      <li>Upload transaction receipts</li>
-                    </ul>
-                  </div>
+                    <div *ngIf="!isLoadingMembers && selectedOrgMembers.length === 0" class="text-center text-muted">
+                      <i class="fas fa-users fa-2x mb-3"></i>
+                      <p>No members found</p>
+                    </div>
 
-                  <div class="mb-0">
-                    <h6 class="text-danger"><i class="fas fa-crown me-2"></i>Admin</h6>
-                    <ul class="small text-muted mb-0">
-                      <li>All editor permissions</li>
-                      <li>Add/remove members</li>
-                      <li>Manage organization settings</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Members List -->
-            <div [class]="userRole === 'admin' ? 'col-md-8' : 'col-12'">
-              <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                  <h6 class="mb-0"><i class="fas fa-users me-2"></i>Organization Members</h6>
-                  <span class="badge bg-secondary">{{ selectedOrgMembers.length }} members</span>
-                </div>
-                <div class="card-body">
-                  <div *ngIf="isLoadingMembers" class="text-center">
-                    <i class="fas fa-spinner fa-spin"></i> Loading members...
-                  </div>
-
-                  <div *ngIf="!isLoadingMembers && selectedOrgMembers.length === 0" class="text-center text-muted">
-                    <i class="fas fa-users fa-2x mb-3"></i>
-                    <p>No members found</p>
-                  </div>
-
-                  <div *ngIf="!isLoadingMembers && selectedOrgMembers.length > 0" class="table-responsive">
-                    <table class="table table-hover">
-                      <thead class="table-dark">
-                        <tr>
-                          <th>Member</th>
-                          <th>Role</th>
-                          <th>Joined</th>
-                          <th *ngIf="userRole === 'admin'">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let member of selectedOrgMembers">
-                          <td>
-                            <div class="d-flex align-items-center">
-                              <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3"
-                                   style="width: 40px; height: 40px;">
-                                <i class="fas fa-user text-white"></i>
+                    <div *ngIf="!isLoadingMembers && selectedOrgMembers.length > 0" class="table-responsive">
+                      <table class="table table-hover">
+                        <thead class="table-dark">
+                          <tr>
+                            <th>Member</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th *ngIf="userRole === 'admin'">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let member of selectedOrgMembers">
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <div
+                                  class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3"
+                                  style="width: 40px; height: 40px;">
+                                  <i class="fas fa-user text-white"></i>
+                                </div>
+                                <div>
+                                  <strong>{{ member.displayName || member.email }}</strong>
+                                  <br><small class="text-muted">{{ member.email }}</small>
+                                  <span *ngIf="member.userId === currentUser?.uid"
+                                    class="badge bg-primary ms-2">You</span>
+                                </div>
                               </div>
-                              <div>
-                                <strong>{{ member.displayName || member.email }}</strong>
-                                <br><small class="text-muted">{{ member.email }}</small>
-                                <span *ngIf="member.userId === currentUser?.uid" class="badge bg-primary ms-2">You</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
+                            </td>
+                            <!-- <td>
                             <span class="badge" [ngClass]="{
                               'bg-danger': member.role === 'admin',
                               'bg-warning text-dark': member.role === 'editor',
@@ -372,148 +371,46 @@
                               }"></i>
                               {{ member.role | titlecase }}
                             </span>
-                          </td>
-                          <td>
-                            <small>{{ toDate(member.joinedAt) | date:'shortDate' }}</small>
-                          </td>
-                          <td *ngIf="userRole === 'admin'">
-                            <div class="btn-group" role="group" *ngIf="member.userId !== currentUser?.uid">
-                              <button class="btn btn-sm btn-outline-danger"
-                                      (click)="removeMember(member)"
-                                      title="Remove member">
-                                <i class="fas fa-user-times"></i>
-                              </button>
-                            </div>
-                            <span *ngIf="member.userId === currentUser?.uid" class="text-muted">-</span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                          </td> -->
 
-        <!-- Transactions Tab -->
-        <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
-          <div class="row mt-4">
-            <!-- Add Transaction Form -->
-            <div class="col-md-4" *ngIf="userRole !== 'viewer'">
-              <div class="card">
-                <div class="card-header bg-success text-white">
-                  <h6 class="mb-0"><i class="fas fa-plus me-2"></i>Add Transaction</h6>
-                </div>
-                <div class="card-body">
-                  <form (ngSubmit)="addTransaction()" #transactionForm="ngForm">
-                    <div class="mb-3">
-                      <label for="transactionType" class="form-label">Transaction Type *</label>
-                      <select class="form-select" id="transactionType"
-                              [(ngModel)]="newTransaction.type" name="type" required>
-                        <option value="credit">
-                          <i class="fas fa-arrow-up text-success"></i> Credit (Money In)
-                        </option>
-                        <option value="debit">
-                          <i class="fas fa-arrow-down text-danger"></i> Debit (Money Out)
-                        </option>
-                      </select>
-                    </div>
-
-                    <div class="mb-3">
-                      <label for="transactionAmount" class="form-label">Amount (₹) *</label>
-                      <div class="input-group">
-                        <span class="input-group-text">₹</span>
-                        <input type="number" class="form-control" id="transactionAmount"
-                               [(ngModel)]="newTransaction.amount" name="amount"
-                               min="0" step="0.01" required placeholder="0.00">
-                      </div>
-                    </div>
-
-                    <div class="mb-3">
-                      <label for="transactionNote" class="form-label">Description *</label>
-                      <textarea class="form-control" id="transactionNote"
-                                [(ngModel)]="newTransaction.note" name="note"
-                                rows="3" required placeholder="Describe the transaction purpose"></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-success w-100"
-                            [disabled]="isAddingTransaction || !transactionForm.valid">
-                      <i class="fas" [ngClass]="{'fa-spinner fa-spin': isAddingTransaction, 'fa-plus': !isAddingTransaction}"></i>
-                      {{ isAddingTransaction ? 'Adding...' : 'Add Transaction' }}
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-
-            <!-- Transactions List -->
-            <div [class]="userRole === 'viewer' ? 'col-12' : 'col-md-8'">
-              <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                  <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Recent Transactions</h6>
-                  <span class="badge bg-secondary">{{ selectedOrgTransactions.length }} transactions</span>
-                </div>
-                <div class="card-body">
-                  <div *ngIf="isLoadingTransactions" class="text-center">
-                    <i class="fas fa-spinner fa-spin"></i> Loading transactions...
-                  </div>
-
-                  <div *ngIf="!isLoadingTransactions && selectedOrgTransactions.length === 0"
-                       class="text-center text-muted">
-                    <i class="fas fa-receipt fa-2x mb-3"></i>
-                    <p>No transactions found</p>
-                    <p *ngIf="userRole !== 'viewer'" class="small">Start by adding your first transaction!</p>
-                  </div>
-
-                  <div *ngIf="!isLoadingTransactions && selectedOrgTransactions.length > 0">
-                    <div class="table-responsive">
-                      <table class="table table-hover">
-                        <thead class="table-dark">
-                          <tr>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th>Description</th>
-                            <th>Date</th>
-                            <th>Created By</th>
-                            <th *ngIf="userRole !== 'viewer'">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr *ngFor="let transaction of selectedOrgTransactions">
                             <td>
-                              <span class="badge" [ngClass]="{
-                                'bg-success': transaction.type === 'credit',
-                                'bg-danger': transaction.type === 'debit'
-                              }">
-                                <i class="fas" [ngClass]="{
-                                  'fa-arrow-up': transaction.type === 'credit',
-                                  'fa-arrow-down': transaction.type === 'debit'
-                                }"></i>
-                                {{ transaction.type | titlecase }}
-                              </span>
+                              <ng-container
+                                *ngIf="userRole === 'admin' && member.userId !== currentUser?.uid; else displayRole">
+                                <select [(ngModel)]="member.role" (ngModelChange)="updateMemberRole(member)"
+                                  class="form-select form-select-sm">
+                                  <option value="viewer">Viewer</option>
+                                  <option value="editor">Editor</option>
+                                  <option value="admin">Admin</option>
+                                </select>
+                              </ng-container>
+                              <ng-template #displayRole>
+                                <span class="badge" [ngClass]="{
+      'bg-danger': member.role === 'admin',
+      'bg-warning text-dark': member.role === 'editor',
+      'bg-success': member.role === 'viewer'
+    }">
+                                  <i class="fas" [ngClass]="{
+        'fa-crown': member.role === 'admin',
+        'fa-edit': member.role === 'editor',
+        'fa-eye': member.role === 'viewer'
+      }"></i>
+                                  {{ member.role | titlecase }}
+                                </span>
+                              </ng-template>
                             </td>
+
+
                             <td>
-                              <strong [ngClass]="{
-                                'text-success': transaction.type === 'credit',
-                                'text-danger': transaction.type === 'debit'
-                              }">
-                                ₹{{ transaction.amount | number:'1.2-2' }}
-                              </strong>
+                              <small>{{ toDate(member.joinedAt) | date:'shortDate' }}</small>
                             </td>
-                            <td>{{ transaction.note }}</td>
-                            <td>
-                              <small>{{ toDate(transaction.createdAt) | date:'short' }}</small>
-                            </td>
-                            <td>
-                              <small>{{ transaction.createdByName || 'Unknown' }}</small>
-                            </td>
-                            <td *ngIf="userRole !== 'viewer'">
-                              <button class="btn btn-sm btn-outline-danger"
-                                      (click)="deleteTransaction(transaction)"
-                                      title="Delete transaction">
-                                <i class="fas fa-trash"></i>
-                              </button>
+                            <td *ngIf="userRole === 'admin'">
+                              <div class="btn-group" role="group" *ngIf="member.userId !== currentUser?.uid">
+                                <button class="btn btn-sm btn-outline-danger" (click)="removeMember(member)"
+                                  title="Remove member">
+                                  <i class="fas fa-user-times"></i>
+                                </button>
+                              </div>
+                              <span *ngIf="member.userId === currentUser?.uid" class="text-muted">-</span>
                             </td>
                           </tr>
                         </tbody>
@@ -524,72 +421,198 @@
               </div>
             </div>
           </div>
-        </div>
-         <!-- ✅ ADD THIS NEW TAB CONTENT -->
-            <!-- ✅ UPDATED TAB CONTENT with safe navigation -->
-<div class="tab-pane fade" id="requests" role="tabpanel" aria-labelledby="requests-tab">
-  <div class="card mt-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h6 class="mb-0"><i class="fas fa-user-clock me-2"></i>Pending Join Requests</h6>
-      <button class="btn btn-sm btn-outline-primary" (click)="loadPendingJoinRequests()">
-        <i class="fas fa-refresh me-1"></i>Refresh
-      </button>
-    </div>
 
-    <div class="card-body">
-      <!-- Loading state -->
-      <div *ngIf="isLoadingJoinRequests" class="text-center">
-        <i class="fas fa-spinner fa-spin"></i> Loading requests...
-      </div>
+          <!-- Transactions Tab -->
+          <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+            <div class="row mt-4">
+              <!-- Add Transaction Form -->
+              <div class="col-md-4" *ngIf="userRole !== 'viewer'">
+                <div class="card">
+                  <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-plus me-2"></i>Add Transaction</h6>
+                  </div>
+                  <div class="card-body">
+                    <form (ngSubmit)="addTransaction()" #transactionForm="ngForm">
+                      <div class="mb-3">
+                        <label for="transactionType" class="form-label">Transaction Type *</label>
+                        <select class="form-select" id="transactionType" [(ngModel)]="newTransaction.type" name="type"
+                          required>
+                          <option value="credit">
+                            <i class="fas fa-arrow-up text-success"></i> Credit (Money In)
+                          </option>
+                          <option value="debit">
+                            <i class="fas fa-arrow-down text-danger"></i> Debit (Money Out)
+                          </option>
+                        </select>
+                      </div>
 
-      <!-- No requests - using safe check -->
-      <div *ngIf="!isLoadingJoinRequests && (pendingJoinRequests?.length ?? 0) === 0"
-           class="text-center text-muted">
-        <i class="fas fa-inbox fa-2x mb-3"></i>
-        <p>No pending join requests</p>
-      </div>
+                      <div class="mb-3">
+                        <label for="transactionAmount" class="form-label">Amount (₹) *</label>
+                        <div class="input-group">
+                          <span class="input-group-text">₹</span>
+                          <input type="number" class="form-control" id="transactionAmount"
+                            [(ngModel)]="newTransaction.amount" name="amount" min="0" step="0.01" required
+                            placeholder="0.00">
+                        </div>
+                      </div>
 
-      <!-- Requests list - using safe navigation -->
-      <div *ngIf="!isLoadingJoinRequests && (pendingJoinRequests?.length ?? 0) > 0">
-        <div class="list-group">
-          <div class="list-group-item" *ngFor="let request of pendingJoinRequests; trackBy: trackByUserId">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <h6 class="mb-1">{{ request?.userDisplayName || 'Unknown User' }}</h6>
-                <p class="mb-1 text-muted">{{ request?.userEmail || 'No email' }}</p>
-                <small class="text-muted">
-                  Requested: {{ toDate(request?.requestedAt) | date:'medium' }}
-                </small>
+                      <div class="mb-3">
+                        <label for="transactionNote" class="form-label">Description *</label>
+                        <textarea class="form-control" id="transactionNote" [(ngModel)]="newTransaction.note"
+                          name="note" rows="3" required placeholder="Describe the transaction purpose"></textarea>
+                      </div>
+
+                      <button type="submit" class="btn btn-success w-100"
+                        [disabled]="isAddingTransaction || !transactionForm.valid">
+                        <i class="fas"
+                          [ngClass]="{'fa-spinner fa-spin': isAddingTransaction, 'fa-plus': !isAddingTransaction}"></i>
+                        {{ isAddingTransaction ? 'Adding...' : 'Add Transaction' }}
+                      </button>
+                    </form>
+                  </div>
+                </div>
               </div>
-              <div class="btn-group" role="group">
-                <button class="btn btn-success btn-sm"
-                        [disabled]="!request?.userId"
-                        (click)="approveJoinRequest(request?.userId)">
-                  <i class="fas fa-check me-1"></i>Approve
-                </button>
-                <button class="btn btn-danger btn-sm"
-                        [disabled]="!request?.userId"
-                        (click)="rejectJoinRequest(request?.userId)">
-                  <i class="fas fa-times me-1"></i>Reject
-                </button>
+
+              <!-- Transactions List -->
+              <div [class]="userRole === 'viewer' ? 'col-12' : 'col-md-8'">
+                <div class="card">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Recent Transactions</h6>
+                    <span class="badge bg-secondary">{{ selectedOrgTransactions.length }} transactions</span>
+                  </div>
+                  <div class="card-body">
+                    <div *ngIf="isLoadingTransactions" class="text-center">
+                      <i class="fas fa-spinner fa-spin"></i> Loading transactions...
+                    </div>
+
+                    <div *ngIf="!isLoadingTransactions && selectedOrgTransactions.length === 0"
+                      class="text-center text-muted">
+                      <i class="fas fa-receipt fa-2x mb-3"></i>
+                      <p>No transactions found</p>
+                      <p *ngIf="userRole !== 'viewer'" class="small">Start by adding your first transaction!</p>
+                    </div>
+
+                    <div *ngIf="!isLoadingTransactions && selectedOrgTransactions.length > 0">
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <thead class="table-dark">
+                            <tr>
+                              <th>Type</th>
+                              <th>Amount</th>
+                              <th>Description</th>
+                              <th>Date</th>
+                              <th>Created By</th>
+                              <th *ngIf="userRole !== 'viewer'">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let transaction of selectedOrgTransactions">
+                              <td>
+                                <span class="badge" [ngClass]="{
+                                'bg-success': transaction.type === 'credit',
+                                'bg-danger': transaction.type === 'debit'
+                              }">
+                                  <i class="fas" [ngClass]="{
+                                  'fa-arrow-up': transaction.type === 'credit',
+                                  'fa-arrow-down': transaction.type === 'debit'
+                                }"></i>
+                                  {{ transaction.type | titlecase }}
+                                </span>
+                              </td>
+                              <td>
+                                <strong [ngClass]="{
+                                'text-success': transaction.type === 'credit',
+                                'text-danger': transaction.type === 'debit'
+                              }">
+                                  ₹{{ transaction.amount | number:'1.2-2' }}
+                                </strong>
+                              </td>
+                              <td>{{ transaction.note }}</td>
+                              <td>
+                                <small>{{ toDate(transaction.createdAt) | date:'short' }}</small>
+                              </td>
+                              <td>
+                                <small>{{ transaction.createdByName || 'Unknown' }}</small>
+                              </td>
+                              <td *ngIf="userRole !== 'viewer'">
+                                <button class="btn btn-sm btn-outline-danger" (click)="deleteTransaction(transaction)"
+                                  title="Delete transaction">
+                                  <i class="fas fa-trash"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          <!-- ✅ ADD THIS NEW TAB CONTENT -->
+          <!-- ✅ UPDATED TAB CONTENT with safe navigation -->
+          <div class="tab-pane fade" id="requests" role="tabpanel" aria-labelledby="requests-tab">
+            <div class="card mt-4">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-user-clock me-2"></i>Pending Join Requests</h6>
+                <button class="btn btn-sm btn-outline-primary" (click)="loadPendingJoinRequests()">
+                  <i class="fas fa-refresh me-1"></i>Refresh
+                </button>
+              </div>
+
+              <div class="card-body">
+                <!-- Loading state -->
+                <div *ngIf="isLoadingJoinRequests" class="text-center">
+                  <i class="fas fa-spinner fa-spin"></i> Loading requests...
+                </div>
+
+                <!-- No requests - using safe check -->
+                <div *ngIf="!isLoadingJoinRequests && (pendingJoinRequests?.length ?? 0) === 0"
+                  class="text-center text-muted">
+                  <i class="fas fa-inbox fa-2x mb-3"></i>
+                  <p>No pending join requests</p>
+                </div>
+
+                <!-- Requests list - using safe navigation -->
+                <div *ngIf="!isLoadingJoinRequests && (pendingJoinRequests?.length ?? 0) > 0">
+                  <div class="list-group">
+                    <div class="list-group-item" *ngFor="let request of pendingJoinRequests; trackBy: trackByUserId">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                          <h6 class="mb-1">{{ request?.userDisplayName || 'Unknown User' }}</h6>
+                          <p class="mb-1 text-muted">{{ request?.userEmail || 'No email' }}</p>
+                          <small class="text-muted">
+                            Requested: {{ toDate(request?.requestedAt) | date:'medium' }}
+                          </small>
+                        </div>
+                        <div class="btn-group" role="group">
+                          <button class="btn btn-success btn-sm" [disabled]="!request?.userId"
+                            (click)="approveJoinRequest(request?.userId)">
+                            <i class="fas fa-check me-1"></i>Approve
+                          </button>
+                          <button class="btn btn-danger btn-sm" [disabled]="!request?.userId"
+                            (click)="rejectJoinRequest(request?.userId)">
+                            <i class="fas fa-times me-1"></i>Reject
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-      </div>
+    <!-- No Organization Selected State -->
+    <div *ngIf="!selectedOrg && organizations.length > 0" class="text-center text-muted mt-5">
+      <i class="fas fa-hand-point-up fa-3x mb-3"></i>
+      <h5>Select an Organization</h5>
+      <p>Choose an organization from the list above to view its details and manage members and transactions.</p>
     </div>
   </div>
-
-  <!-- No Organization Selected State -->
-  <div *ngIf="!selectedOrg && organizations.length > 0" class="text-center text-muted mt-5">
-    <i class="fas fa-hand-point-up fa-3x mb-3"></i>
-    <h5>Select an Organization</h5>
-    <p>Choose an organization from the list above to view its details and manage members and transactions.</p>
-  </div>
-</div>
 </div>

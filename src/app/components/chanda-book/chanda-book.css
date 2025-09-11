@@ -252,3 +252,142 @@
   box-shadow: 0 4px 8px rgba(0,0,0,0.12);
   transition: all 0.3s ease;
 }
+
+/* Chandabook Style Receipt */
+.receipt-template {
+  width: 350px;               /* slip size */
+  margin: 0 auto;
+  padding: 15px;
+  border: 3px double #000;    /* traditional border */
+  font-family: 'Arial', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  background: #fff;
+}
+
+.receipt-template h5 {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.receipt-template p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+/* Donation amount block */
+.receipt-template .donation-amount {
+  border: 2px solid #000;
+  padding: 6px 10px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.receipt-template .donation-amount .symbol {
+  font-size: 20px;
+  margin-right: 4px;
+}
+
+/* Small stamp box */
+.receipt-template .stamp-box {
+  border: 1px solid #000;
+  padding: 5px;
+  font-size: 11px;
+  text-align: center;
+  min-width: 100px;
+  min-height: 60px;
+  display: inline-block;
+}
+
+/* Print version as slip */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #receipt-content,
+  #receipt-content * {
+    visibility: visible;
+  }
+
+  #receipt-content {
+    position: relative;
+    margin: 0 auto;
+    width: 350px !important;
+    border: 3px double #000;
+    padding: 15px;
+  }
+
+  .modal-header,
+  .modal-footer {
+    display: none !important;
+  }
+
+
+  
+}
+
+/* Dual Receipt Layout */
+.receipt-dual {
+  display: flex;
+  justify-content: space-between;
+  border: 3px double #000;
+  padding: 10px;
+  background: #fff;
+}
+
+.receipt-slip {
+  width: 50%;
+  font-size: 13px;
+  font-family: 'Arial', sans-serif;
+  line-height: 1.4;
+}
+
+.receipt-slip h6 {
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.receipt-slip p {
+  margin: 3px 0;
+}
+
+/* Amount Box */
+.donation-amount {
+  border: 2px solid #000;
+  padding: 6px 12px;
+  font-size: 18px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.donation-amount .symbol {
+  font-size: 20px;
+  margin-right: 4px;
+}
+
+/* Stamp Box */
+.stamp-box {
+  border: 1px solid #000;
+  padding: 5px;
+  font-size: 11px;
+  text-align: center;
+  min-width: 100px;
+  min-height: 60px;
+  display: inline-block;
+}
+
+/* Print Format */
+@media print {
+  body * { visibility: hidden; }
+  #receipt-content, #receipt-content * { visibility: visible; }
+  #receipt-content {
+    margin: 0 auto;
+    width: 100%;
+    border: 3px double #000;
+  }
+  .modal-header, .modal-footer { display: none !important; }
+}
+

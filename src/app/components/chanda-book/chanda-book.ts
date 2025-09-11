@@ -51,6 +51,9 @@ export class ChandaBookComponent implements OnInit, OnDestroy {
   showReceiptModal = false;
   lastDonation: Donation | null = null;
 
+  // ADD THIS LINE:
+selectedDonation: Donation | null = null;
+
   constructor(private router: Router) {
     console.log('🎯 ChandaBookComponent constructor called');
 
@@ -274,6 +277,8 @@ goHome() {
         createdAt: new Date()
       } as Donation;
 
+      this.selectedDonation = this.lastDonation;
+
       // Reset form
       this.donationForm.reset({
         category: 'donation',
@@ -325,24 +330,45 @@ goHome() {
   }
 
   // WhatsApp share functionality
-  shareReceiptViaWhatsApp() {
-    if (!this.lastDonation || !this.chandaBook) {
-      console.error('❌ Cannot share receipt: Missing data');
-      return;
-    }
+  // shareReceiptViaWhatsApp() {
+  //   if (!this.lastDonation || !this.chandaBook) {
+  //     console.error('❌ Cannot share receipt: Missing data');
+  //     return;
+  //   }
 
-    console.log('📱 Sharing receipt via WhatsApp:', this.lastDonation.receiptNumber);
+  //   console.log('📱 Sharing receipt via WhatsApp:', this.lastDonation.receiptNumber);
 
-    const message = this.chandaBookService.generateWhatsAppMessage(this.lastDonation, this.chandaBook);
-    const whatsappUrl = `https://wa.me/?text=${message}`;
-    window.open(whatsappUrl, '_blank');
+  //   const message = this.chandaBookService.generateWhatsAppMessage(this.lastDonation, this.chandaBook);
+  //   const whatsappUrl = `https://wa.me/?text=${message}`;
+  //   window.open(whatsappUrl, '_blank');
+  // }
+
+  // // Print receipt
+  // printReceipt() {
+  //   console.log('🖨️ Printing receipt...');
+  //   window.print();
+  // }
+
+
+  // WhatsApp share
+shareReceiptViaWhatsApp() {
+  if (!this.selectedDonation || !this.chandaBook) {
+    console.error('❌ Cannot share receipt: Missing data');
+    return;
   }
 
-  // Print receipt
-  printReceipt() {
-    console.log('🖨️ Printing receipt...');
-    window.print();
-  }
+  console.log('📱 Sharing receipt via WhatsApp:', this.selectedDonation.receiptNumber);
+
+  const message = this.chandaBookService.generateWhatsAppMessage(this.selectedDonation, this.chandaBook);
+  const whatsappUrl = `https://wa.me/?text=${message}`;
+  window.open(whatsappUrl, '_blank');
+}
+
+// Print receipt
+printReceipt() {
+  console.log('🖨️ Printing receipt...');
+  window.print();
+}
 
   // Utility methods
   getProgressPercentage(): number {
@@ -351,11 +377,23 @@ goHome() {
     return Math.round(percentage * 10) / 10; // Round to 1 decimal place
   }
 
+  // closeReceiptModal() {
+  //   console.log('📄 Closing receipt modal');
+  //   this.showReceiptModal = false;
+  //   this.lastDonation = null;
+  // }
+
   closeReceiptModal() {
-    console.log('📄 Closing receipt modal');
-    this.showReceiptModal = false;
-    this.lastDonation = null;
-  }
+  console.log('📄 Closing receipt modal');
+  this.showReceiptModal = false;
+  this.lastDonation = null;
+  this.selectedDonation = null; // ADD THIS LINE
+}
+
+openReceiptModal(donation: Donation) {
+  this.selectedDonation = donation;
+  this.showReceiptModal = true;
+}
 
   toDate(timestamp: any): Date {
     if (timestamp?.toDate) return timestamp.toDate();
