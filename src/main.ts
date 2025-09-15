@@ -90,7 +90,45 @@ import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 
 import { environment } from './environments/environment';
+// Complete Chart.js registration
+import {
+  Chart,
+  ArcElement,
+  LineElement,
+  BarElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  RadialLinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  PieController,
+  BarController,
+  DoughnutController,
+  LineController
+} from 'chart.js';
 
+// Register all Chart.js components
+Chart.register(
+  ArcElement,
+  LineElement,
+  BarElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  RadialLinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  PieController,
+  BarController,
+  DoughnutController,
+  LineController
+);
+
+console.log('🔥 Firebase app initialized');
+console.log('📊 Chart.js components registered')
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),

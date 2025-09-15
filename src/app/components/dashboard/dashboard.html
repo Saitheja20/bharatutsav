@@ -1,4 +1,3 @@
-
 <app-navigation></app-navigation>
 <div class="container mt-4">
     <div class="row mb-4">
@@ -49,60 +48,54 @@
         </div>
     </div>
 
-    <!-- <div class="row">
+    <!-- Charts Section -->
+    <div class="row mb-4" *ngIf="isBrowser && isChartsLoaded">
         <div class="col-lg-6 mb-4">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Credits vs Debits</h5>
                 </div>
-                <div class="card-body">
-                    <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
+                <div class="card-body chart-container">
+                    <canvas #pieChart
+                            baseChart
+                            [data]="pieChartData"
+                            type="pie"
+                            [options]="pieChartOptions">
+                    </canvas>
                 </div>
             </div>
         </div>
+
         <div class="col-lg-6 mb-4">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Daily Summary</h5>
+                    <h5 class="card-title mb-0">Daily Summary (Last 7 Days)</h5>
                 </div>
-                <div class="card-body">
-                    <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
+                <div class="card-body chart-container">
+                    <canvas #barChart
+                            baseChart
+                            [data]="barChartData"
+                            type="bar"
+                            [options]="barChartOptions">
+                    </canvas>
                 </div>
             </div>
         </div>
-    </div> -->
-
-    <div class="row">
-  <div class="col-lg-6 mb-4">
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title mb-0">Credits vs Debits</h5>
-      </div>
-      <div class="card-body">
-        <ng-container *ngIf="isBrowser">
-  <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
-  pie chart
-</ng-container>
-      </div>
     </div>
-  </div>
 
-  <div class="col-lg-6 mb-4">
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title mb-0">Daily Summary</h5>
-      </div>
-      <div class="card-body">
-       <ng-container *ngIf="isBrowser">
-  <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
-  bar chart
-</ng-container>
-      </div>
+    <!-- Loading State for Charts -->
+    <div class="row mb-4" *ngIf="!isChartsLoaded && isBrowser">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                    <p>Loading charts...</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-
+    <!-- Recent Transactions -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">Recent Transactions</h5>

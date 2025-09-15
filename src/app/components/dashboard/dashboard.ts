@@ -1,12 +1,12 @@
-import { Component, OnInit, NgZone, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef, inject, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Auth, User, onAuthStateChanged } from '@angular/fire/auth';
-import { Firestore, collection, query, orderBy, getDocs, doc, getDoc, serverTimestamp } from '@angular/fire/firestore';
+import { Firestore, collection, query, orderBy, getDocs } from '@angular/fire/firestore';
 import { Router, RouterModule } from '@angular/router';
-import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
+import { ChartData, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { isPlatformBrowser } from '@angular/common';
-import { PLATFORM_ID, Inject } from '@angular/core';
+import { PLATFORM_ID } from '@angular/core';
 import { Timestamp } from 'firebase/firestore';
 import { Transaction } from '../../interfaces/transaction.interface';
 import { NavigationComponent } from '../navigation/navigation';
@@ -18,7 +18,10 @@ import { NavigationComponent } from '../navigation/navigation';
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewInit {
+  @ViewChild('pieChart') pieChart?: BaseChartDirective;
+  @ViewChild('barChart') barChart?: BaseChartDirective;
+
   private ngZone = inject(NgZone);
   private cdr = inject(ChangeDetectorRef);
   private auth = inject(Auth);
@@ -34,32 +37,125 @@ export class DashboardComponent implements OnInit {
 
   recentTransactions: Transaction[] = [];
   isLoadingTransactions = true;
+  isChartsLoaded = false;
 
-  pieChartData: ChartData<'pie'> = {
+  // Pie Chart Configuration
+  pieChartData: ChartData = {
     labels: ['Credits', 'Debits'],
-    datasets: [{ data: [0, 0], backgroundColor: ['#28a745', '#dc3545'], borderColor: '#fff', borderWidth: 2 }],
+    datasets: [{
+      data: [0, 0],
+      backgroundColor: ['#28a745', '#dc3545'],
+      borderColor: ['#ffffff', '#ffffff'],
+      borderWidth: 2
+    }],
   };
-  pieChartType: ChartType = 'pie';
 
-  barChartData: ChartData<'bar'> = {
+  // Bar Chart Configuration
+  barChartData: ChartData = {
     labels: [],
     datasets: [
-      { data: [], label: 'Credits', backgroundColor: '#28a745', borderColor: '#1e7e34', borderWidth: 1 },
-      { data: [], label: 'Debits', backgroundColor: '#dc3545', borderColor: '#c82333', borderWidth: 1 },
+      {
+        label: 'Credits',
+        data: [],
+        backgroundColor: '#28a745',
+        borderColor: '#1e7e34',
+        borderWidth: 1,
+        borderRadius: 4,
+      },
+      {
+        label: 'Debits',
+        data: [],
+        backgroundColor: '#dc3545',
+        borderColor: '#c82333',
+        borderWidth: 1,
+        borderRadius: 4,
+      },
     ],
   };
-  barChartType: ChartType = 'bar';
+
+  // Chart options
+  pieChartOptions: ChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const label = context.label || '';
+            const value = context.parsed;
+            const total = (context.dataset.data as number[]).reduce((a: number, b: number) => a + b, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+            return `${label}: ₹${value.toLocaleString()} (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+
+  barChartOptions: ChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value: any) {
+            return '₹' + Number(value).toLocaleString();
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          padding: 20
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            return `${context.dataset.label}: ₹${Number(context.parsed.y).toLocaleString()}`;
+          }
+        }
+      }
+    }
+  };
 
   ngOnInit(): void {
-    this.ngZone.run(() => {
-      onAuthStateChanged(this.auth, async (user: User | null) => {
-        if (!user) {
-          this.router.navigate(['/login']);
-          return;
-        }
-        await this.loadDashboardData();
+    if (this.isBrowser) {
+      this.ngZone.run(() => {
+        onAuthStateChanged(this.auth, async (user: User | null) => {
+          if (!user) {
+            this.router.navigate(['/login']);
+            return;
+          }
+          // Only load dashboard data - no photoURL handling needed here
+          await this.loadDashboardData();
+        });
       });
-    });
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.isBrowser) {
+      setTimeout(() => {
+        this.updateCharts();
+      }, 100);
+    }
   }
 
   async loadDashboardData(): Promise<void> {
@@ -79,7 +175,6 @@ export class DashboardComponent implements OnInit {
       qSnapshot.forEach((doc) => {
         const data = doc.data();
 
-        // Using bracket notation ensures safety because data is a PropertyMap
         const transaction: Transaction = {
           id: doc.id,
           amount: Number(data['amount']) || 0,
@@ -100,7 +195,6 @@ export class DashboardComponent implements OnInit {
           this.totalDebits += transaction.amount;
         }
 
-        // Safely get Date object from timestamp or fallback
         const date = this.toDate(transaction.createdAt).toLocaleDateString();
 
         if (!dailySums[date]) {
@@ -116,39 +210,72 @@ export class DashboardComponent implements OnInit {
       this.currentBalance = this.totalCredits - this.totalDebits;
       this.recentTransactions = transactions.slice(0, 5);
 
-      // Update chart data immutably
-      const last7Days = Object.keys(dailySums).slice(-7);
-      this.pieChartData = {
-        labels: ['Credits', 'Debits'],
-        datasets: [{ data: [this.totalCredits, this.totalDebits], backgroundColor: ['#28a745', '#dc3545'], borderColor: '#fff', borderWidth: 2 }],
-      };
-      this.barChartData = {
-        labels: last7Days,
-        datasets: [
-          {
-            label: 'Credits',
-            data: last7Days.map((d) => dailySums[d]?.credits || 0),
-            backgroundColor: '#28a745',
-            borderColor: '#1e7e34',
-            borderWidth: 1,
-          },
-          {
-            label: 'Debits',
-            data: last7Days.map((d) => dailySums[d]?.debits || 0),
-            backgroundColor: '#dc3545',
-            borderColor: '#c82333',
-            borderWidth: 1,
-          },
-        ],
-      };
+      // Update chart data
+      this.updateChartData(dailySums);
 
       if (this.isBrowser) {
         this.cdr.detectChanges();
+        setTimeout(() => {
+          this.updateCharts();
+        }, 100);
       }
+
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
       this.isLoadingTransactions = false;
+      this.isChartsLoaded = true;
+    }
+  }
+
+  private updateChartData(dailySums: { [date: string]: { credits: number; debits: number } }): void {
+    // Update pie chart data
+    this.pieChartData = {
+      labels: ['Credits', 'Debits'],
+      datasets: [{
+        data: [this.totalCredits, this.totalDebits],
+        backgroundColor: ['#28a745', '#dc3545'],
+        borderColor: ['#ffffff', '#ffffff'],
+        borderWidth: 2
+      }],
+    };
+
+    // Update bar chart data (last 7 days)
+    const sortedDates = Object.keys(dailySums).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    const last7Days = sortedDates.slice(-7);
+
+    this.barChartData = {
+      labels: last7Days.map(date => {
+        const d = new Date(date);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }),
+      datasets: [
+        {
+          label: 'Credits',
+          data: last7Days.map((date) => dailySums[date]?.credits || 0),
+          backgroundColor: '#28a745',
+          borderColor: '#1e7e34',
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+        {
+          label: 'Debits',
+          data: last7Days.map((date) => dailySums[date]?.debits || 0),
+          backgroundColor: '#dc3545',
+          borderColor: '#c82333',
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+      ],
+    };
+  }
+
+  private updateCharts(): void {
+    if (this.pieChart) {
+      this.pieChart.update();
+    }
+    if (this.barChart) {
+      this.barChart.update();
     }
   }
 
@@ -156,6 +283,6 @@ export class DashboardComponent implements OnInit {
     if (timestamp instanceof Timestamp) {
       return timestamp.toDate();
     }
-    return new Date(); // Fallback if timestamp missing
+    return new Date();
   }
 }
