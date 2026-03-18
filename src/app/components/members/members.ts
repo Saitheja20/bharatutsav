@@ -48,31 +48,23 @@ export class MembersComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.ngZone.run(() => {
+      onAuthStateChanged(this.auth, async (user) => {
+        if (user) {
+          this.currentUserId = user.uid;
+          const userDoc = await getDoc(doc(this.firestore, 'users', user.uid));
+          this.userRole = userDoc.exists() ? userDoc.data()['role'] || 'viewer' : 'viewer';
 
- this.ngZone.run(() => {
-      onAuthStateChanged(this.auth, user => {
-        // Your auth state handling logic here
-
-           onAuthStateChanged(this.auth, async (user) => {
-      if (user) {
-        this.currentUserId = user.uid;
-        const userDoc = await getDoc(doc(this.firestore, 'users', user.uid));
-        this.userRole = userDoc.exists() ? userDoc.data()['role'] || 'viewer' : 'viewer';
-
-        if (this.userRole === 'admin') {
-          this.loadMembers();
+          if (this.userRole === 'admin') {
+            this.loadMembers();
+          } else {
+            this.isLoadingMembers = false;
+          }
         } else {
-          this.isLoadingMembers = false;
+          this.router.navigate(['/login']);
         }
-      } else {
-        this.router.navigate(['/login']);
-      }
-    });
       });
     });
-
-
-
   }
 async inviteUser(email: string, role: 'admin' | 'member' | 'editor' = 'member') {
   if (this.userRole !== 'admin') {
