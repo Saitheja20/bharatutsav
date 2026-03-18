@@ -1,80 +1,94 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary" *ngIf="isAuth">
-  <div class="container">
-    <a class="navbar-brand" routerLink="/dashboard">
-      <!-- <i class="fas fa-calendar-alt me-2"></i> -->
-       <img  src="images/logo/main-logo.png"
-                 alt="User" class="rounded-circle me-2"
-                 width="42" height="42">
-      BharatUtsav
-    </a>
+<!-- ═══════════════════════════════════════════════════════════
+     BharatUtsav Sidebar Navigation
+     ═══════════════════════════════════════════════════════════ -->
+<ng-container *ngIf="isAuth">
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarNav" aria-controls="navbarNav"
-            aria-expanded="false" aria-label="Toggle navigation">
-             <i class="fas fa-bars" style="color: black; font-size: 24px;"></i>
-      <!-- <span class="navbar-toggler-icon" style="color: black Impor !important; font-weight: bold;"></span> -->
+  <!-- Mobile top bar -->
+  <header class="bu-topbar">
+    <button class="bu-topbar-toggle" (click)="toggleSidebar()" aria-label="Toggle menu">
+      <i class="fas fa-bars"></i>
     </button>
+    <span class="bu-topbar-brand">BharatUtsav</span>
+    <div class="bu-topbar-user">
+      <span class="bu-topbar-username">{{ userName }}</span>
+      <img src="images/basics/defaultimage.png" alt="User" class="bu-topbar-avatar">
+    </div>
+  </header>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <!-- ✅ Navigation Links -->
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
-            <i class="fas fa-home me-1"></i>Dashboard
-          </a>
-        </li>
+  <!-- Sidebar overlay (mobile) -->
+  <div class="bu-sidebar-overlay" [class.active]="sidebarOpen" (click)="closeSidebar()"></div>
 
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/organizations" routerLinkActive="active">
-            <i class="fas fa-building me-2"></i>Organizations
-          </a>
-        </li>
+  <!-- Sidebar -->
+  <aside class="bu-sidebar" [class.open]="sidebarOpen">
 
-<!--         <li class="nav-item">
-          <a class="nav-link" routerLink="/transactions" routerLinkActive="active">
-            <i class="fas fa-exchange-alt me-1"></i>Transactions
-          </a>
-        </li> -->
-          <!-- Add this to your navigation -->
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/chanda-book" routerLinkActive="active">
-              <i class="fas fa-book me-2"></i>Chanda Book
-            </a>
-          </li>
-
-        <!-- ✅ Only show Members to admins -->
-        <li class="nav-item" *ngIf="userRole === 'admin'">
-          <a class="nav-link" routerLink="/members" routerLinkActive="active">
-            <i class="fas fa-users me-1"></i>Members
-          </a>
-        </li>
-      </ul>
-
-      <!-- ✅ User Menu -->
-      <div class="navbar-nav">
-        <div class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle d-flex align-items-center"
-             href="#" id="userDropdown" role="button"
-             data-bs-toggle="dropdown" aria-expanded="false">
-            <!-- ✅ Fixed user photo visibility -->
-            <!-- <img *ngIf="userPhotoUrl" [src]="userPhotoUrl"
-                 alt="User" class="rounded-circle me-2"
-                 width="32" height="32"> -->
-                  <img  src="images/basics/defaultimage.png"
-                 alt="User" class="rounded-circle me-2"
-                 width="32" height="32">
-            <span id="userName">{{ userName }}</span>
-          </a>
-
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-            <li>
-              <a class="dropdown-item" href="#" (click)="signOut()">
-                <i class="fas fa-sign-out-alt me-2"></i>Sign Out
-              </a>
-            </li>
-          </ul>
-        </div>
+    <!-- Brand -->
+    <div class="bu-sidebar-brand">
+      <img src="images/logo/main-logo.png" alt="BharatUtsav Logo" class="bu-sidebar-logo">
+      <div class="bu-sidebar-brand-text">
+        <span class="bu-sidebar-brand-name">BharatUtsav</span>
+        <span class="bu-sidebar-brand-tagline">Festival Ledger</span>
       </div>
     </div>
-  </div>
-</nav>
+
+    <!-- Nav links -->
+    <nav class="bu-sidebar-nav">
+      <a class="bu-sidebar-link"
+         routerLink="/dashboard"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="bu-sidebar-link-icon"><i class="fas fa-th-large"></i></span>
+        <span class="bu-sidebar-link-label">Dashboard</span>
+      </a>
+
+      <a class="bu-sidebar-link"
+         routerLink="/organizations"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="bu-sidebar-link-icon"><i class="fas fa-building"></i></span>
+        <span class="bu-sidebar-link-label">Organizations</span>
+      </a>
+
+      <a class="bu-sidebar-link"
+         routerLink="/chanda-book"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="bu-sidebar-link-icon"><i class="fas fa-book"></i></span>
+        <span class="bu-sidebar-link-label">Chanda Book</span>
+      </a>
+
+      <a class="bu-sidebar-link"
+         routerLink="/transactions"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="bu-sidebar-link-icon"><i class="fas fa-exchange-alt"></i></span>
+        <span class="bu-sidebar-link-label">Transactions</span>
+      </a>
+
+      <a class="bu-sidebar-link"
+         *ngIf="userRole === 'admin'"
+         routerLink="/members"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="bu-sidebar-link-icon"><i class="fas fa-users"></i></span>
+        <span class="bu-sidebar-link-label">Members</span>
+      </a>
+    </nav>
+
+    <!-- Bottom user section -->
+    <div class="bu-sidebar-footer">
+      <div class="bu-sidebar-user">
+        <img src="images/basics/defaultimage.png" alt="User" class="bu-sidebar-user-avatar">
+        <div class="bu-sidebar-user-info">
+          <span class="bu-sidebar-user-name">{{ userName }}</span>
+          <span class="bu-sidebar-user-role">{{ userRole | titlecase }}</span>
+        </div>
+      </div>
+      <button class="bu-sidebar-signout" (click)="signOut()" title="Sign Out">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+
+  </aside>
+
+</ng-container>
+
