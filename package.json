@@ -1,12 +1,14 @@
 {
   "name": "festival-ledger-app",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "lint": "ng lint",
     "serve:ssr:festival-ledger-app": "node dist/festival-ledger-app/server/server.mjs"
   },
   "prettier": {
