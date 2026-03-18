@@ -120,14 +120,14 @@
       <!-- Loading -->
       <div *ngIf="isLoadingTransactions" class="bu-empty">
         <div class="bu-spinner"></div>
-        <p class="bu-empty-title" style="margin-top: var(--space-4)">Loading transactions…</p>
+        <p class="bu-empty-title bu-empty-loading-text">Loading transactions…</p>
       </div>
 
       <!-- Empty -->
       <div *ngIf="!isLoadingTransactions && recentTransactions.length === 0" class="bu-empty">
         <div class="bu-empty-icon"><i class="fas fa-receipt"></i></div>
         <p class="bu-empty-title">No transactions yet</p>
-        <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-5);">
+        <p class="bu-empty-description">
           Start recording your festival finances.
         </p>
         <a routerLink="/transactions" class="bu-btn bu-btn-primary">

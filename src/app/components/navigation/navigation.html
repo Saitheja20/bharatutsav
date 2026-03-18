@@ -11,7 +11,7 @@
     <span class="bu-topbar-brand">BharatUtsav</span>
     <div class="bu-topbar-user">
       <span class="bu-topbar-username">{{ userName }}</span>
-      <img src="images/basics/defaultimage.png" alt="User" class="bu-topbar-avatar">
+      <img src="images/basics/defaultimage.png" [attr.alt]="userName + ' avatar'" class="bu-topbar-avatar">
     </div>
   </header>
 
@@ -77,7 +77,7 @@
     <!-- Bottom user section -->
     <div class="bu-sidebar-footer">
       <div class="bu-sidebar-user">
-        <img src="images/basics/defaultimage.png" alt="User" class="bu-sidebar-user-avatar">
+        <img src="images/basics/defaultimage.png" [attr.alt]="userName + ' avatar'" class="bu-sidebar-user-avatar">
         <div class="bu-sidebar-user-info">
           <span class="bu-sidebar-user-name">{{ userName }}</span>
           <span class="bu-sidebar-user-role">{{ userRole | titlecase }}</span>

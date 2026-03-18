@@ -131,6 +131,17 @@
 }
 
 /* ── Responsive ── */
+.bu-empty-loading-text {
+  margin-top: var(--space-4);
+}
+
+.bu-empty-description {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+}
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
   body.has-sidebar .bu-page {
     padding-top: calc(var(--topbar-height) + var(--space-4));
