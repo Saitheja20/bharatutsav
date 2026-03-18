@@ -1,1 +1,51 @@
-/* You can add global styles to this file, and also import other style files */
+/* BharatUtsav Global Styles */
+@import './styles/design-system.css';
+
+/* Override Bootstrap defaults with design system */
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+/* Mobile topbar offset */
+@media (max-width: 768px) {
+  body.has-sidebar .container,
+  body.has-sidebar .bu-page {
+    padding-top: calc(var(--topbar-height) + var(--space-4));
+  }
+}
+
+/* Bootstrap card overrides */
+.card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-light);
+  font-family: var(--font-heading);
+  font-weight: var(--fw-semibold);
+}
+
+/* Bootstrap btn overrides */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-color: transparent;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: linear-gradient(135deg, var(--color-primary-mid) 0%, var(--color-primary) 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(30,83,104,.35);
+}
+
+/* Headings use Sora */
+h1, h2, h3, h4, h5, h6,
+.navbar-brand {
+  font-family: var(--font-heading);
+}
+

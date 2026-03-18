@@ -1,143 +1,175 @@
 
+<!-- ═══════════════════════════════════════════════════════════
+     BharatUtsav Dashboard
+     ═══════════════════════════════════════════════════════════ -->
 <app-navigation></app-navigation>
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Total Credits</h6>
-                            <h3 class="mb-0">₹{{ totalCredits | number:'1.2-2' }}</h3>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-arrow-up fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+<div class="bu-page bu-fadein">
+
+  <!-- Page Header -->
+  <div class="bu-page-header">
+    <h1 class="bu-page-title">Dashboard</h1>
+    <p class="bu-page-subtitle">Overview of your festival finances</p>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="bu-grid-cols-3 bu-stats-row">
+
+    <div class="bu-stat-card bu-stat-credits">
+      <div class="bu-stat-top">
+        <div class="stat-icon icon-credits">
+          <i class="fas fa-arrow-down"></i>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Total Debits</h6>
-                            <h3 class="mb-0">₹{{ totalDebits | number:'1.2-2' }}</h3>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-arrow-down fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <span class="bu-badge bu-badge-success">Credits</span>
+      </div>
+      <div class="stat-value">₹{{ totalCredits | number:'1.2-2' }}</div>
+      <div class="stat-label">Total Money Received</div>
+      <div class="bu-stat-bar">
+        <div class="bu-stat-bar-fill bu-stat-bar-green"
+             [style.width.%]="totalCredits + totalDebits > 0 ? (totalCredits / (totalCredits + totalDebits)) * 100 : 50">
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Current Balance</h6>
-                            <h3 class="mb-0">₹{{ currentBalance | number:'1.2-2' }}</h3>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-balance-scale fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
 
-    <!-- <div class="row">
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Credits vs Debits</h5>
-                </div>
-                <div class="card-body">
-                    <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
-                </div>
-            </div>
+    <div class="bu-stat-card bu-stat-debits">
+      <div class="bu-stat-top">
+        <div class="stat-icon icon-debits">
+          <i class="fas fa-arrow-up"></i>
         </div>
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Daily Summary</h5>
-                </div>
-                <div class="card-body">
-                    <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
-                </div>
-            </div>
-        </div>
-    </div> -->
-
-    <div class="row">
-  <div class="col-lg-6 mb-4">
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title mb-0">Credits vs Debits</h5>
+        <span class="bu-badge bu-badge-error">Debits</span>
       </div>
-      <div class="card-body">
+      <div class="stat-value">₹{{ totalDebits | number:'1.2-2' }}</div>
+      <div class="stat-label">Total Money Spent</div>
+      <div class="bu-stat-bar">
+        <div class="bu-stat-bar-fill bu-stat-bar-red"
+             [style.width.%]="totalCredits + totalDebits > 0 ? (totalDebits / (totalCredits + totalDebits)) * 100 : 50">
+        </div>
+      </div>
+    </div>
+
+    <div class="bu-stat-card bu-stat-balance" [class.negative]="currentBalance < 0">
+      <div class="bu-stat-top">
+        <div class="stat-icon icon-balance">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <span class="bu-badge" [class.bu-badge-success]="currentBalance >= 0" [class.bu-badge-error]="currentBalance < 0">
+          {{ currentBalance >= 0 ? 'Surplus' : 'Deficit' }}
+        </span>
+      </div>
+      <div class="stat-value" [class.text-success]="currentBalance >= 0" [class.text-danger]="currentBalance < 0">
+        ₹{{ currentBalance | number:'1.2-2' }}
+      </div>
+      <div class="stat-label">Current Balance</div>
+      <div class="bu-stat-bar">
+        <div class="bu-stat-bar-fill"
+             [class.bu-stat-bar-teal]="currentBalance >= 0"
+             [class.bu-stat-bar-red]="currentBalance < 0"
+             style="width: 100%">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Charts Row -->
+  <div class="bu-grid-cols-2 bu-charts-row">
+
+    <div class="bu-card">
+      <div class="bu-card-header">
+        <h3 class="bu-section-title"><i class="fas fa-chart-donut me-2"></i>Credits vs Debits</h3>
+      </div>
+      <div class="bu-card-body bu-chart-body">
         <ng-container *ngIf="isBrowser">
-  <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
-  pie chart
-</ng-container>
+          <canvas baseChart [data]="pieChartData" [type]="pieChartType"></canvas>
+        </ng-container>
+        <div *ngIf="!isBrowser" class="bu-empty">
+          <div class="bu-empty-icon"><i class="fas fa-chart-pie"></i></div>
+          <p class="bu-empty-title">Chart loading…</p>
+        </div>
       </div>
+    </div>
+
+    <div class="bu-card">
+      <div class="bu-card-header">
+        <h3 class="bu-section-title"><i class="fas fa-chart-bar me-2"></i>Daily Summary</h3>
+      </div>
+      <div class="bu-card-body bu-chart-body">
+        <ng-container *ngIf="isBrowser">
+          <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
+        </ng-container>
+        <div *ngIf="!isBrowser" class="bu-empty">
+          <div class="bu-empty-icon"><i class="fas fa-chart-bar"></i></div>
+          <p class="bu-empty-title">Chart loading…</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Recent Transactions -->
+  <div class="bu-card bu-recent-card">
+    <div class="bu-card-header">
+      <h3 class="bu-section-title"><i class="fas fa-clock me-2"></i>Recent Transactions</h3>
+      <a routerLink="/transactions" class="bu-btn bu-btn-primary bu-btn-sm">
+        View All <i class="fas fa-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="bu-card-body">
+
+      <!-- Loading -->
+      <div *ngIf="isLoadingTransactions" class="bu-empty">
+        <div class="bu-spinner"></div>
+        <p class="bu-empty-title bu-empty-loading-text">Loading transactions…</p>
+      </div>
+
+      <!-- Empty -->
+      <div *ngIf="!isLoadingTransactions && recentTransactions.length === 0" class="bu-empty">
+        <div class="bu-empty-icon"><i class="fas fa-receipt"></i></div>
+        <p class="bu-empty-title">No transactions yet</p>
+        <p class="bu-empty-description">
+          Start recording your festival finances.
+        </p>
+        <a routerLink="/transactions" class="bu-btn bu-btn-primary">
+          <i class="fas fa-plus me-2"></i>Add First Transaction
+        </a>
+      </div>
+
+      <!-- Table -->
+      <div *ngIf="!isLoadingTransactions && recentTransactions.length > 0" class="bu-table-wrapper">
+        <table class="bu-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Description</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tx of recentTransactions" class="bu-fadein">
+              <td>
+                <span class="bu-badge"
+                      [class.bu-badge-success]="tx.type === 'credit'"
+                      [class.bu-badge-error]="tx.type === 'debit'">
+                  <i class="fas" [ngClass]="tx.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up'"></i>
+                  {{ tx.type | titlecase }}
+                </span>
+              </td>
+              <td class="bu-amount"
+                  [class.bu-amount-credit]="tx.type === 'credit'"
+                  [class.bu-amount-debit]="tx.type === 'debit'">
+                ₹{{ tx.amount | number:'1.2-2' }}
+              </td>
+              <td class="bu-note">{{ tx.note || '—' }}</td>
+              <td class="bu-date">{{ toDate(tx.createdAt) | date:'dd MMM yyyy' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 
-  <div class="col-lg-6 mb-4">
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title mb-0">Daily Summary</h5>
-      </div>
-      <div class="card-body">
-       <ng-container *ngIf="isBrowser">
-  <canvas baseChart [data]="barChartData" [type]="barChartType"></canvas>
-  bar chart
-</ng-container>
-      </div>
-    </div>
-  </div>
 </div>
 
-
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">Recent Transactions</h5>
-            <a routerLink="/transactions" class="btn btn-primary btn-sm">View All</a>
-        </div>
-        <div class="card-body">
-            <div *ngIf="isLoadingTransactions" class="text-center text-muted">
-                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                <p>Loading transactions...</p>
-            </div>
-
-            <div *ngIf="!isLoadingTransactions && recentTransactions.length === 0" class="text-center text-muted">
-                <i class="fas fa-receipt fa-2x mb-3"></i>
-                <p>No transactions found</p>
-                <a routerLink="/transactions" class="btn btn-primary">Add First Transaction</a>
-            </div>
-
-            <div *ngIf="!isLoadingTransactions && recentTransactions.length > 0">
-                <div class="row border-bottom py-2" *ngFor="let transaction of recentTransactions">
-                    <div class="col-md-2">
-                        <span class="badge" [ngClass]="{'bg-success': transaction.type === 'credit', 'bg-danger': transaction.type === 'debit'}">
-                            {{ transaction.type | titlecase }}
-                        </span>
-                    </div>
-                    <div class="col-md-3">
-                        <strong>₹{{ transaction.amount | number:'1.2-2' }}</strong>
-                    </div>
-                    <div class="col-md-4">
-                        {{ transaction.note || 'No description' }}
-                    </div>
-                    <div class="col-md-3 text-end text-muted">
-                        <small>{{ toDate(transaction.createdAt) | date:'shortDate' }}</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
